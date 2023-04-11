@@ -133,3 +133,6 @@ host/gvisor-master/
 test/
 api/healthy/*
 api/infected/*
+*.env
+app/app.env
+*.env
