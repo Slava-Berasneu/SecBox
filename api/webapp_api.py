@@ -3,8 +3,11 @@ from datetime import datetime
 import os
 
 cwd = os.getcwd()
+print("cwd: ", cwd)
 path = cwd[:-4]
+print("path", path)
 sys.path.append(path)
+
 
 from backend.dataManager.syscallManager import SysCallManager
 from backend.dataManager.performanceManager import PerformanceManager
@@ -21,13 +24,14 @@ from flask_login import LoginManager, login_user, current_user, UserMixin
 import logging
 import json
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
 load_dotenv()
 # Hosted DB:
 # admin
 # HmxrjkxTwd0etI6Y
 # mongodb+srv://admin:HmxrjkxTwd0etI6Y@secboxmongodb.nhcx1ch.mongodb.net/?retryWrites=true&w=majority
+
 
 app = Flask(__name__)
 CORS(app)
@@ -362,6 +366,7 @@ def create():
 @app.route("/getReports")
 def get_reports():
     reports = handler.get_reports()
+    print("reports: ",reports)
     return {"reports": reports}
 
 

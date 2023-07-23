@@ -63,9 +63,10 @@ namespaces = ['/sandbox',
 if __name__ == '__main__':
     while True:
         try:
+            print("BE_IP_PORT: "+os.getenv("BE_IP_PORT"))
             socketio.connect(os.getenv('BE_IP_PORT'), namespaces=namespaces)
             print("Host running...")
             socketio.wait()
-        except Exception:
-            print("Server not available, retrying in 5s")
+        except Exception as e:
+            print("Server not available, retrying in 5s ", str(e))
             time.sleep(5)

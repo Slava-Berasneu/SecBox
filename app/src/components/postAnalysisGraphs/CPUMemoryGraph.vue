@@ -9,6 +9,7 @@
 </template>
 
 <script>
+import { toRaw } from 'vue';
 export default {
   name: "CPUMemoryGraph",
   props: {graph_title: String, data: Object, },
@@ -16,6 +17,11 @@ export default {
 
   },
   data: function () {
+    const target_copy = toRaw(this.data);
+
+    console.log("CPU Mem Data: ", target_copy)
+    console.log("Healthy data: ", target_copy.healthy)
+    console.log("Infected data: ", target_copy.infected)
     return {
       loading: true,
       series: [{

@@ -54,35 +54,54 @@ class PerformanceManager(DataManager):
             if len(cpu_percentage_trimmed) >= 60:
                 cpu_percentage_trimmed = cpu_percentage_trimmed[-60:]
             else:
-                length_dummy_data = 60 - len(cpu_percentage_trimmed)
-                dummy_data = length_dummy_data * [cpu_percentage_trimmed[0]]
-                cpu_percentage_trimmed = dummy_data + cpu_percentage_trimmed
+                try:
+                    length_dummy_data = 60 - len(cpu_percentage_trimmed)
+                    dummy_data = length_dummy_data * [cpu_percentage_trimmed[0]]
+                    cpu_percentage_trimmed = dummy_data + cpu_percentage_trimmed
+                except:
+                    print("CPU Percentage Trimmed:",cpu_percentage_trimmed)
+                    length_dummy_data = 60 - len(cpu_percentage_trimmed)
+                    dummy_data = length_dummy_data * [0]
+                    cpu_percentage_trimmed = dummy_data + cpu_percentage_trimmed
+                    
 
             times = []
             percentages = []
-            for t in cpu_percentage_trimmed:
-                time = datetime.strptime(
-                    t["timestamp"], "%m/%d/%Y, %H:%M:%S.%f%Z")
-                times.append(datetime.strftime(time, "%H:%M:%S"))
-                percentages.append(round(t["cpu_percentage"], 4))
+            
+            try:
+                for t in cpu_percentage_trimmed:
+                    time = datetime.strptime(
+                        t["timestamp"], "%m/%d/%Y, %H:%M:%S.%f%Z")
+                    times.append(datetime.strftime(time, "%H:%M:%S"))
+                    percentages.append(round(t["cpu_percentage"], 4))
 
-            response_cpu_percentage = {
-                "infected_status": infected_status,
-                "data": {
-                    "timestamps": times,
-                    "percentages": percentages
+                response_cpu_percentage = {
+                    "infected_status": infected_status,
+                    "data": {
+                        "timestamps": times,
+                        "percentages": percentages
+                    }
                 }
-            }
 
-            self.socketio.emit("cpu_percentages_graph",
-                               response_cpu_percentage,
-                               namespace='/live', room=str(sandbox_id))
+                self.socketio.emit("cpu_percentages_graph",
+                                response_cpu_percentage,
+                                namespace='/live', room=str(sandbox_id))
 
-            trimmed_pid_counts = self.pid_counts[sandbox_id][infected_status]["graph"]
+                trimmed_pid_counts = self.pid_counts[sandbox_id][infected_status]["graph"]
 
-            if len(self.pid_counts[sandbox_id][infected_status]["graph"]) >= 2:
-                # if a new value appears, we send it to the front end (we also send every 20th
-                if trimmed_pid_counts[-1]["pid_count"] != trimmed_pid_counts[-2]["pid_count"] or len(trimmed_pid_counts) % 20 == 0:
+                if len(self.pid_counts[sandbox_id][infected_status]["graph"]) >= 2:
+                    # if a new value appears, we send it to the front end (we also send every 20th
+                    if trimmed_pid_counts[-1]["pid_count"] != trimmed_pid_counts[-2]["pid_count"] or len(trimmed_pid_counts) % 20 == 0:
+                        response_pid = {
+                            "infected_status": infected_status,
+                            "data": {
+                                "pid_count": trimmed_pid_counts[-1]
+                            }
+                        }
+                        self.socketio.emit("pid_graph",
+                                        response_pid, namespace='/live', room=str(sandbox_id))
+
+                else:
                     response_pid = {
                         "infected_status": infected_status,
                         "data": {
@@ -90,32 +109,25 @@ class PerformanceManager(DataManager):
                         }
                     }
                     self.socketio.emit("pid_graph",
-                                       response_pid, namespace='/live', room=str(sandbox_id))
+                                    response_pid, namespace='/live', room=str(sandbox_id))
 
-            else:
-                response_pid = {
+                packets_trimmed = self.packet_counts[sandbox_id][infected_status]["graph"][-1:]
+
+                response_packets = {
                     "infected_status": infected_status,
                     "data": {
-                        "pid_count": trimmed_pid_counts[-1]
+                        "packets": packets_trimmed
                     }
                 }
-                self.socketio.emit("pid_graph",
-                                   response_pid, namespace='/live', room=str(sandbox_id))
 
-            packets_trimmed = self.packet_counts[sandbox_id][infected_status]["graph"][-1:]
-
-            response_packets = {
-                "infected_status": infected_status,
-                "data": {
-                    "packets": packets_trimmed
-                }
-            }
-
-            self.socketio.emit("packet_graph",
-                               response_packets, namespace='/live', room=str(sandbox_id))
-            self.order_nos[sandbox_id][infected_status] = data["orderNo"]
-            self.raw_perf_data[sandbox_id][infected_status].append(
-                data["stats"])
+                self.socketio.emit("packet_graph",
+                                response_packets, namespace='/live', room=str(sandbox_id))
+                self.order_nos[sandbox_id][infected_status] = data["orderNo"]
+                self.raw_perf_data[sandbox_id][infected_status].append(
+                    data["stats"])
+            except:
+                print("Hit CPU error")
+                return True
         return True
 
     def save_data(self, data):
@@ -155,27 +167,32 @@ class PerformanceManager(DataManager):
 
     def extract_cpu_percentages(self, sandbox_id, infected_status, data):
         current_ts = parser.parse(data["stats"]["read"])
-        if data:
-            system_delta = data["stats"]['cpu_stats']['system_cpu_usage'] - data["stats"]['precpu_stats']['system_cpu_usage']
-            cpu_delta = data["stats"]['cpu_stats']['cpu_usage']['total_usage'] - data["stats"]['precpu_stats']['cpu_usage']['total_usage']
-            no_cores = data["stats"]['cpu_stats']['online_cpus']
+        if data:   
+            try:
+                system_delta = data["stats"]['cpu_stats']['system_cpu_usage'] - data["stats"]['precpu_stats']['system_cpu_usage']
+                cpu_delta = data["stats"]['cpu_stats']['cpu_usage']['total_usage'] - data["stats"]['precpu_stats']['cpu_usage']['total_usage']
+                no_cores = data["stats"]['cpu_stats']['online_cpus']
 
-            if system_delta:
-                percentage = (cpu_delta/system_delta) * 100 * no_cores
-            else:
-                percentage = 0
+                if system_delta:
+                    percentage = (cpu_delta/system_delta) * 100 * no_cores
+                else:
+                    percentage = 0
 
-            self.cpu_percentages[sandbox_id][infected_status]["graph"].append({"timestamp": current_ts.strftime("%m/%d/%Y, %H:%M:%S.%f%Z"), "cpu_percentage": percentage})
+                self.cpu_percentages[sandbox_id][infected_status]["graph"].append({"timestamp": current_ts.strftime("%m/%d/%Y, %H:%M:%S.%f%Z"), "cpu_percentage": percentage})
+            except:
+                print("CPU data error")
 
 
     def extract_packet_count(self, sandbox_id, infected_status, data):
-        current_ts = parser.parse(
-            data["read"])
-        received_packages = data["networks"]["eth0"]["rx_packets"]
-        transmitted_packages = data["networks"]["eth0"]["tx_packets"]
+        try: 
+            current_ts = parser.parse(
+                data["read"])
+            received_packages = data["networks"]["eth0"]["rx_packets"]
+            transmitted_packages = data["networks"]["eth0"]["tx_packets"]
 
-        self.packet_counts[sandbox_id][infected_status]["graph"].append(
-            {"timestamp": current_ts.strftime("%m/%d/%Y, %H:%M:%S.%f%Z"), "received_packages": received_packages, "transmitted_packages": transmitted_packages})
-
+            self.packet_counts[sandbox_id][infected_status]["graph"].append(
+                {"timestamp": current_ts.strftime("%m/%d/%Y, %H:%M:%S.%f%Z"), "received_packages": received_packages, "transmitted_packages": transmitted_packages})
+        except:
+            print("Extract packet count error")
     def batch_process():
         pass
