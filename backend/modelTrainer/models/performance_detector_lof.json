@@ -1,0 +1,12 @@
+{
+    "modelName": "performance_detector_lof",
+    "modelType": "LocalOutlierFactor",
+    "dataFilePaths": [
+        "backend/modelTrainer/trainingData/coin_miner_performance.json"
+    ],
+    "randomState": "N/A",
+    "contamination": 0.1,
+    "novelty": true,
+    "n_neighbors": 20,
+    "timePeriod": 1000000000
+}

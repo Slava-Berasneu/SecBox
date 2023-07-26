@@ -1,0 +1,11 @@
+{
+    "modelName": "performance_classifier_bayes",
+    "modelType": "GaussianNB",
+    "dataFilePaths": [
+        [
+            "backend/modelTrainer/trainingData/coin_miner_performance.json",
+            "infected"
+        ]
+    ],
+    "randomState": "N/A"
+}

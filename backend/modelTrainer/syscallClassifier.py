@@ -1,27 +1,47 @@
 from sklearn import tree
+from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import OneHotEncoder
 import csv
 import os
-import pickle 
-from abstractClassifierTrainer import ClassifierTrainer
+import pickle
+import json
+from modelTrainer import ModelTrainer
 from collections import OrderedDict
+import numpy as np
 
-class SyscallClassifierTrainer(ClassifierTrainer):
-    def __init__(self, dataFilePaths, model, featureExtractor, modelName):
+class SyscallClassifier(ModelTrainer):
+    def __init__(self, model):
         super().__init__()
-        self.dataFilePaths = dataFilePaths
         self.model = model
+        self.all_syscalls = ['readlink', 'mkdir', 'unlinkat', 'rt_sigaction', 'lstat', 'brk', 'recvfrom', 'ftruncate', 'read', 'mprotect',
+        'close', 'setitimer', 'getgroups', 'statfs', 'select', 'geteuid', 'openat', 'nanosleep', 'execve', 'getuid',
+        'unlink', 'getppid', 'chmod', 'fchmodat', 'prlimit64', 'clock_gettime', 'poll', 'exit_group', 'umask', 'getcwd',
+        'write', 'getpid', 'gettid', 'clone', 'setgroups', 'sysinfo', 'mremap', 'rt_sigreturn', 'sendmmsg', 'ioctl',
+        'socket', 'futex', 'fstat', 'getdents', 'getegid', 'pipe', 'flock', 'setresgid', 'rt_sigprocmask', 'faccessat',
+        'stat', 'kill', 'getpgrp', 'newfstatat', 'getsockname', 'access', 'prctl', 'lchown', 'getrandom', 'munmap',
+        'lseek', 'fork', 'mmap', 'fcntl', 'set_robust_list', 'set_tid_address', 'getgid', 'chdir', 'arch_prctl', 'utime',
+        'clock_getres', 'chown', 'connect', 'pselect6', 'open', 'dup2', 'rename', 'dup', 'uname', 'wait4', 'pipe2',
+        'setgid']
+
+    def predict(self, data):
+        return self.model.predict(data)
+        
+    def trainModel(self, dataFilePaths, featureExtractor, modelName):
+        self.dataFilePaths = dataFilePaths
         self.featureExtractor = featureExtractor
         self.modelName = modelName
 
+        features_combined_list = []
+        marker_combined_list = []
         for path, marker in dataFilePaths:
             syscall_raw_list = self.readFileContents(path)
             features = self.extractFeatures(syscall_raw_list)
-            self.trainModel(features, marker)
-        self.saveModel(modelName)
+            features_combined_list.extend(features)
+            marker_combined_list.extend([marker for _ in range(len(features))])
 
+        self.fitModel(features_combined_list, marker_combined_list)
+        self.saveModel(modelName)
 
     def readFileContents(self, path):
         syscall_arr = []
@@ -61,18 +81,7 @@ class SyscallClassifierTrainer(ClassifierTrainer):
         return features
 
     def extractFrequency(self, syscall_raw_list):
-        all_syscalls = ['readlink', 'mkdir', 'unlinkat', 'rt_sigaction', 'lstat', 'brk', 'recvfrom', 'ftruncate', 'read', 'mprotect',
-        'close', 'setitimer', 'getgroups', 'statfs', 'select', 'geteuid', 'openat', 'nanosleep', 'execve', 'getuid',
-        'unlink', 'getppid', 'chmod', 'fchmodat', 'prlimit64', 'clock_gettime', 'poll', 'exit_group', 'umask', 'getcwd',
-        'write', 'getpid', 'gettid', 'clone', 'setgroups', 'sysinfo', 'mremap', 'rt_sigreturn', 'sendmmsg', 'ioctl',
-        'socket', 'futex', 'fstat', 'getdents', 'getegid', 'pipe', 'flock', 'setresgid', 'rt_sigprocmask', 'faccessat',
-        'stat', 'kill', 'getpgrp', 'newfstatat', 'getsockname', 'access', 'prctl', 'lchown', 'getrandom', 'munmap',
-        'lseek', 'fork', 'mmap', 'fcntl', 'set_robust_list', 'set_tid_address', 'getgid', 'chdir', 'arch_prctl', 'utime',
-        'clock_getres', 'chown', 'connect', 'pselect6', 'open', 'dup2', 'rename', 'dup', 'uname', 'wait4', 'pipe2',
-        'setgid']
-    
-        
-        syscall_counter = OrderedDict((syscall, 0) for syscall in all_syscalls)
+        syscall_counter = OrderedDict((syscall, 0) for syscall in self.all_syscalls)
 
         separated_features_arr = []
         start_time = int(syscall_raw_list[0][0])
@@ -97,7 +106,7 @@ class SyscallClassifierTrainer(ClassifierTrainer):
                     separated_features_arr.append(syscall_counter_list)
 
             # Reset the dict to 0
-                syscall_counter = OrderedDict((syscall, 0) for syscall in all_syscalls)
+                syscall_counter = OrderedDict((syscall, 0) for syscall in self.all_syscalls)
                 start_time += self.time_period
                 end_time += self.time_period
 
@@ -105,19 +114,8 @@ class SyscallClassifierTrainer(ClassifierTrainer):
         return separated_features_arr
 
     def extractSequence(self, syscall_raw_list):
-        all_syscalls = ['readlink', 'mkdir', 'unlinkat', 'rt_sigaction', 'lstat', 'brk', 'recvfrom', 'ftruncate', 'read', 'mprotect',
-        'close', 'setitimer', 'getgroups', 'statfs', 'select', 'geteuid', 'openat', 'nanosleep', 'execve', 'getuid',
-        'unlink', 'getppid', 'chmod', 'fchmodat', 'prlimit64', 'clock_gettime', 'poll', 'exit_group', 'umask', 'getcwd',
-        'write', 'getpid', 'gettid', 'clone', 'setgroups', 'sysinfo', 'mremap', 'rt_sigreturn', 'sendmmsg', 'ioctl',
-        'socket', 'futex', 'fstat', 'getdents', 'getegid', 'pipe', 'flock', 'setresgid', 'rt_sigprocmask', 'faccessat',
-        'stat', 'kill', 'getpgrp', 'newfstatat', 'getsockname', 'access', 'prctl', 'lchown', 'getrandom', 'munmap',
-        'lseek', 'fork', 'mmap', 'fcntl', 'set_robust_list', 'set_tid_address', 'getgid', 'chdir', 'arch_prctl', 'utime',
-        'clock_getres', 'chown', 'connect', 'pselect6', 'open', 'dup2', 'rename', 'dup', 'uname', 'wait4', 'pipe2',
-        'setgid']
-
         syscall_occurrences = OrderedDict((syscall, OrderedDict((other_syscall, 0) for other_syscall 
-                                                                in all_syscalls)) for syscall in all_syscalls)
-
+                                                                in self.all_syscalls)) for syscall in self.all_syscalls)
         separated_features_arr = []
         sequence = []
         start_time = int(syscall_raw_list[0][0])
@@ -150,10 +148,9 @@ class SyscallClassifierTrainer(ClassifierTrainer):
         return separated_features_arr
 
 
-    def trainModel(self, X, y):
-        y = [y for _ in range(len(X))]
-
-        print(X)
+    def fitModel(self, X, y):
+        #print(y)
+        #print(X)
         self.model.fit(X,y)
 
     def testModel(self):
@@ -162,20 +159,43 @@ class SyscallClassifierTrainer(ClassifierTrainer):
     def saveModel(self, file_name):
         cwd = os.getcwd()
 
-        with open(cwd+'/'+'backend/modelTrainer/models/'+file_name, 'wb') as file:
+        #store trained model as pickle
+        with open(cwd+'/'+'backend/modelTrainer/models/'+file_name+'.pkl', 'wb') as file:
             pickle.dump(self.model, file)
 
-syscall_file_paths = [['backend/modelTrainer/trainingData/coin_miner_syscalls_infected.csv', 'infected'], 
-                      ['backend/modelTrainer/trainingData/coin_miner_syscalls_healthy.csv', 'healthy']]
+        #store parameters file for training reproducibility
+        parameters = {
+            "modelName": self.modelName,
+            "modelType": self.model.__class__.__name__,
+            "dataFilePaths": self.dataFilePaths,
+            "randomState": self.model.random_state if hasattr('self', 'model.random_state') else "N/A",
+            "featureExtractor": self.featureExtractor,
+            "timePeriod": self.time_period,
+            "syscallList": self.all_syscalls
+        }
+        json_string = json.dumps(parameters, indent=4)
+        with open(cwd+'/'+'backend/modelTrainer/models/'+file_name+'.json', "w") as json_file:
+            json_file.write(json_string)
+        
 
-model_type = tree.DecisionTreeClassifier()
-feature_extractor_type = 'sequence'  
+def trainExampleModel():
+    seed = 52        
+    np.random.seed(seed)
 
-trainer = SyscallClassifierTrainer(syscall_file_paths, model_type, feature_extractor_type, "coin_miner_infected_classifier")
+    syscall_file_paths = [['backend/modelTrainer/trainingData/coin_miner_syscalls_infected.csv', 'infected'], 
+                        ['backend/modelTrainer/trainingData/coin_miner_syscalls_healthy.csv', 'healthy']]
 
-#print("features "+str(len(features)))
-#print("labels "+str(len(["Monti", "Coinminer", "Uninfected"]*(len(features)//3) + ["Uninfected"]*(len(features)%3))))
-#print(str(["Monti", "Coinminer", "Uninfected"]*(len(features)//3) + ["Uninfected"]*(len(features)%3)))
+    #model = tree.DecisionTreeClassifier(random_state=seed)
+    model = GaussianNB()
+    trainer = SyscallClassifier(model)
+    trainer.trainModel(syscall_file_paths,"frequency","coin_miner_frequency_classifier_bayes")
 
+def testExampleModel():
+    cwd = os.getcwd()
+    with open(cwd+'/'+'backend/modelTrainer/models/coin_miner_frequency_classifier_bayes.pkl', 'rb') as file:
+        trained_model = pickle.load(file)
 
-#trainer.trainModel(features, ["Monti", "Coinminer", "Uninfected"]*(len(features)//3) + ["Uninfected"]*(len(features)%3))
+    trainer = SyscallClassifier(trained_model)
+    print(trainer.predict([[1, 0, 0, 121, 0, 9, 0, 0, 36, 32, 47, 0, 2, 0, 0, 11, 33, 0, 2, 12, 0, 1, 0, 0, 2, 6, 0, 4, 0, 1, 3, 7, 0, 4, 0, 1, 0, 4, 0, 26, 4, 0, 34, 6, 12, 2, 0, 0, 44, 7, 49, 0, 1, 0, 0, 29, 0, 0, 0, 9, 4, 0, 46, 3, 0, 0, 12, 0, 3, 0, 0, 0, 4, 1, 0, 3, 0, 1, 4, 8, 0, 0], [0, 0, 0, 9, 0, 4, 2, 0, 40, 28, 28, 2, 0, 0, 3, 0, 31, 0, 0, 2, 0, 0, 0, 0, 1, 0, 3, 0, 0, 0, 11, 14, 0, 0, 0, 1, 0, 0, 1, 5, 4, 21, 29, 0, 0, 0, 0, 0, 2, 0, 9, 0, 0, 0, 0, 15, 0, 0, 1, 3, 0, 0, 38, 0, 1, 1, 0, 0, 1, 0, 2, 0, 4, 0, 0, 0, 0, 0, 1, 0, 0, 0],[0, 0, 0, 17, 1, 8, 0, 0, 32, 4, 22, 0, 0, 0, 3, 3, 14, 0, 2, 2, 19, 1, 1, 0, 0, 0, 0, 0, 0, 1, 24, 2, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 15, 12, 1, 0, 0, 0, 2, 0, 38, 3, 0, 0, 0, 5, 0, 1, 0, 3, 6, 0, 8, 7, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 6, 0, 0], [0, 0, 3, 10, 4, 63, 0, 0, 2069, 16, 77, 0, 0, 2, 0, 2, 92, 0, 1, 1, 2, 0, 0, 0, 1, 0, 0, 4, 1, 0, 82, 2, 0, 1, 0, 0, 11, 1, 0, 2, 0, 0, 28, 4, 0, 1, 0, 0, 2, 0, 464, 0, 0, 3, 0, 8, 0, 0, 0, 3, 3, 0, 23, 35, 2, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 3, 0, 0, 1, 2, 0, 1]]))
+
+testExampleModel()
