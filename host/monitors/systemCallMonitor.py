@@ -105,6 +105,7 @@ class systemCallMonitor:
 
     def monitoring_process(self, infected_status):
         self.client = socketio.Client()
+        self.client.connect(os.getenv('BE_IP_PORT'), namespaces=['/live'])
         print("syscall monitor started")
         socket_addr = "/tmp/" + \
             infected_status + "_" + \
@@ -144,6 +145,8 @@ class systemCallMonitor:
                                 "credentials": str(pb_context_data.credentials),
                                 "args": str(args).replace(",", ";")
                             }
+                            #send each syscall to malware analyzer
+                            self.client.emit('syscalls', [syscall['time_ns'], syscall['sysname']], namespace='/live')
                             logfile.write(json.dumps(syscall)+"\n")
                             write_counter += 1
                         if write_counter>=10000:

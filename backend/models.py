@@ -76,7 +76,6 @@ class SystemCallModel(Document):
                 "directory_frequency":self.directory_frequency
         }
 
-
 class Report(Document):
     ID = db().StringField(unique=True)
     title = db().StringField(max_lenth=200, required=True)

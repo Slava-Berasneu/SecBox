@@ -14,6 +14,7 @@
         <v-card class="bg-deep-purple-lighten-3">
           <CPUPercentages :socket="this.socket"/>
           <PacketGraph :socket="this.socket"/>
+          <MalwareAnalyzer :socket="this.socket"/>
           <v-btn
               block
               color="red darken-4"
@@ -86,6 +87,7 @@
 import LiveTerminal from "@/components/LiveTerminal";
 import router from "@/router/index";
 import CPUPercentages from "@/components/graphs/CPUPercentages";
+import MalwareAnalyzer from "./postAnalysisGraphs/MalwareAnalyzer.vue";
 import PacketGraph from "@/components/graphs/PacketGraph";
 import PIDCountGraph from "@/components/graphs/PIDCountGraph";
 import ProtocolGraph from "@/components/graphs/ProtocolGraph";
@@ -93,7 +95,7 @@ import io from "socket.io-client";
 import MalwareCard from "@/components/MalwareCard";
 export default {
   name: "LiveAnalysis",
-  components: {MalwareCard, LiveTerminal, PacketGraph, PIDCountGraph, CPUPercentages: CPUPercentages, ProtocolGraph},
+  components: {MalwareCard, LiveTerminal, PacketGraph, PIDCountGraph, CPUPercentages: CPUPercentages, ProtocolGraph, MalwareAnalyzer},
   data: () => ({
     loading: true,
     combined_cli: true,

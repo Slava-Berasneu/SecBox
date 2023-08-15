@@ -29,6 +29,8 @@ class SysCallManager(DataManager):
         return syscall_list
 
     def handle_message(self, data):
+        print("syscall message data",data)
+
         for infected_status in data["sysCalls"].keys():
             data["sysCalls"][infected_status] = self.process_data(
                 data["sysCalls"][infected_status])

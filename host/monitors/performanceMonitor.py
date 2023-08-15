@@ -35,6 +35,7 @@ class performanceMonitor:
                 "orderNo": order_count,
                 "stats": stats
             }
+            #print("performance monitor stats ",stats)
             self.client.emit('stats', json.dumps(message), namespace='/performance')
             self.client.sleep(0)
 

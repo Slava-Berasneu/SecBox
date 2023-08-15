@@ -13,6 +13,9 @@ from backend.dataManager.syscallManager import SysCallManager
 from backend.dataManager.performanceManager import PerformanceManager
 from backend.dataManager.networkManager import NetworkManager
 from backend.dataManager.cmdOutManager import CmdOutManager
+from backend.dataManager.classifierManager import ClassifierManager
+from backend.dataManager.anomalyDetectorManager import AnomalyDetectorManager
+
 from flask import Flask, session, request, abort, send_file
 from flask_socketio import SocketIO
 from flask_socketio import send, emit, join_room, leave_room
@@ -60,6 +63,8 @@ system_call_manager = SysCallManager(socketio, db)
 network_manager = NetworkManager(socketio, db)
 performance_manager = PerformanceManager(socketio, db)
 command_output_manager = CmdOutManager(socketio, db)
+classifier_manager = ClassifierManager(socketio, db)
+anomaly_detector_manager = AnomalyDetectorManager(socketio, db)
 
 allowed_users = {
     'foo': 'bar',
@@ -258,6 +263,23 @@ def getDirs(data):
     except IndexError:
         print("No corresponding DB entry found for Directory Graph - ID: ", sandbox_id)
 
+@socketio.on('performance', namespace='/live')
+def generate_performance_prediction(data):
+    pass
+    #sandbox_id = data["ID"]
+    #objects = json.loads(models.MalwareAnalyzerModel.objects(ID__exact=sandbox_id).to_json())
+    #prediction = classifier_manager.handle_message(json.loads(data), 'performance')
+    #socketio.emit('Malware Analysis Table', json.dumps(prediction), namespace="/analysis", room=objects[0]["ID"])
+
+    #anomaly_detector_manager.handle_message(json.loads(data), 'performance')
+
+@socketio.on('syscalls', namespace='/live')
+def generate_syscalls_prediction(data):
+    prediction = classifier_manager.handle_message(data ,'syscalls')
+    if prediction is not None:
+        print("prediction: ", prediction)
+    #anomaly_detector_manager.handle_message(json.loads(data), 'syscalls')
+
 
 @app.route('/report/download_pcap/<identification>/<infection>', methods=['GET'])
 def fetch_pcap(identification, infection):
@@ -275,7 +297,6 @@ def fetch_syscalls(identification, infection):
 
 @socketio.on("create report", namespace="/analysis")
 def create_report(data):
-    print("creating report for", data["ID"])
     date = datetime.now()
 
     report = models.Report(ID=data["ID"], selected_graphs=data["selected_graphs"], title="Title",
@@ -341,7 +362,12 @@ def handle_ready(json):
 
 @socketio.on('stats', namespace='/performance')
 def handle_stats(data):
-    performance_manager.handle_message(json.loads(data))
+    infected_percentages = performance_manager.handle_message(json.loads(data))
+    if(not infected_percentages is None):
+        #classifier_manager.handle_message(infected_percentages, 'performance')
+        #anomaly_detector_manager.handle_message(json.loads(data), 'performance')
+        pass
+
 
 
 @socketio.on('cmdOut', namespace='/cmd')

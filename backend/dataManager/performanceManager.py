@@ -1,11 +1,11 @@
 import flask_mongoengine
-
+import socketio
 from backend.dataManager.dataManager import DataManager
 from dateutil import parser
 from datetime import datetime
 import json
+import os
 from backend import models
-
 
 class PerformanceManager(DataManager):
     def __init__(self, socketio, db):
@@ -34,6 +34,7 @@ class PerformanceManager(DataManager):
         self.raw_perf_data[sandbox_id] = {"healthy": [], "infected": []}
 
     def handle_message(self, data):
+        infected_percentages = None
         sandbox_id = str(data["ID"])  # todo: remove string casting
         infected_status = data["infectedStatus"]
 
@@ -68,7 +69,7 @@ class PerformanceManager(DataManager):
             times = []
             percentages = []
             
-            try:
+            if len(cpu_percentage_trimmed) > 0 and not isinstance(cpu_percentage_trimmed[0], int):
                 for t in cpu_percentage_trimmed:
                     time = datetime.strptime(
                         t["timestamp"], "%m/%d/%Y, %H:%M:%S.%f%Z")
@@ -83,6 +84,17 @@ class PerformanceManager(DataManager):
                     }
                 }
 
+                malware_analyzer_response = [times]
+
+                if response_cpu_percentage["infected_status"] == "infected":
+                    infected_percentages = response_cpu_percentage["data"]["percentages"]
+                    #malware_analyzer_response.
+
+                    #print("Emitted data to socket (performance Manager)")
+                    #emit here for cpu percentage malware analysis
+                    #self.socketio.emit("performance", infected_percentages, namespace='/live')
+
+                
                 self.socketio.emit("cpu_percentages_graph",
                                 response_cpu_percentage,
                                 namespace='/live', room=str(sandbox_id))
@@ -125,10 +137,7 @@ class PerformanceManager(DataManager):
                 self.order_nos[sandbox_id][infected_status] = data["orderNo"]
                 self.raw_perf_data[sandbox_id][infected_status].append(
                     data["stats"])
-            except:
-                print("Hit CPU error")
-                return True
-        return True
+        return infected_percentages
 
     def save_data(self, data):
         print("Saving Performance Data: ", data["ID"])

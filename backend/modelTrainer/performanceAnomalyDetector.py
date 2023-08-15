@@ -6,7 +6,7 @@ import csv
 import os
 import pickle
 import json
-from modelTrainer import ModelTrainer
+from .modelTrainer import ModelTrainer
 from datetime import datetime
 import numpy as np
 
@@ -67,7 +67,6 @@ class PerformanceAnomalyDetector(ModelTrainer):
         return epoch_nanos
 
     def fitModel(self, X):
-        print(X)
         self.model.fit(X)
 
     def testModel(self):
@@ -117,4 +116,4 @@ def testExampleModel():
     trainer = PerformanceAnomalyDetector(trained_model)
     print(trainer.predict([[1.686810575451144e+18, 0.0452754590984975, 0.6206780797273546, 184.0, 55.0], [1.6868105764562609e+18, 0.010443514644351464, 0.6206780797273546, 184.0, 55.0], [1.686810577467789e+18, 0.009154228855721393, 0.6206780797273546, 184.0, 55.0], [1.686810578476995e+18, 0.017271214642262896, 0.6206780797273546, 184.0, 55.0], [1.6868105794868319e+18, 0.008785357737104826, 0.6206780797273546, 184.0, 55.0], [1.686810580496474e+18, 0.006970954356846474, 0.6206780797273546, 184.0, 55.0], [1.6868105815057981e+18, 0.007082294264339151, 0.6206780797273546, 184.0, 55.0], [1.686810354464642e+18, 0.037282518641259324, 0.0981960958807353, 21.0, 0.0], [1.686810355476162e+18, 0.010954356846473029, 0.0981960958807353, 21.0, 0.0]]))
 
-testExampleModel()
+#testExampleModel()

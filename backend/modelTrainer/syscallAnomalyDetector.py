@@ -8,7 +8,7 @@ import csv
 import os
 import pickle
 import json
-from modelTrainer import ModelTrainer
+from .modelTrainer import ModelTrainer
 from collections import OrderedDict
 import numpy as np
 
@@ -95,7 +95,8 @@ class SyscallAnomalyDetector(ModelTrainer):
 
             if start_time <= timestamp < end_time:
                 # Increment frequency count for sysname
-                syscall_counter[sysname] += 1
+                if sysname in syscall_counter:
+                    syscall_counter[sysname] += 1
 
             # Move to the next time chunk, start collecting for the next data point
             if timestamp >= end_time:
@@ -207,4 +208,4 @@ def testExampleModel():
     trainer = SyscallAnomalyDetector(trained_model)
     print(trainer.predict([[1, 0, 0, 121, 0, 9, 0, 0, 36, 32, 47, 0, 2, 0, 0, 11, 33, 0, 2, 12, 0, 1, 0, 0, 2, 6, 0, 4, 0, 1, 3, 7, 0, 4, 0, 1, 0, 4, 0, 26, 4, 0, 34, 6, 12, 2, 0, 0, 44, 7, 49, 0, 1, 0, 0, 29, 0, 0, 0, 9, 4, 0, 46, 3, 0, 0, 12, 0, 3, 0, 0, 0, 4, 1, 0, 3, 0, 1, 4, 8, 0, 0], [0, 0, 0, 9, 0, 4, 2, 0, 40, 28, 28, 2, 0, 0, 3, 0, 31, 0, 0, 2, 0, 0, 0, 0, 1, 0, 3, 0, 0, 0, 11, 14, 0, 0, 0, 1, 0, 0, 1, 5, 4, 21, 29, 0, 0, 0, 0, 0, 2, 0, 9, 0, 0, 0, 0, 15, 0, 0, 1, 3, 0, 0, 38, 0, 1, 1, 0, 0, 1, 0, 2, 0, 4, 0, 0, 0, 0, 0, 1, 0, 0, 0],[0, 0, 0, 17, 1, 8, 0, 0, 32, 4, 22, 0, 0, 0, 3, 3, 14, 0, 2, 2, 19, 1, 1, 0, 0, 0, 0, 0, 0, 1, 24, 2, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 15, 12, 1, 0, 0, 0, 2, 0, 38, 3, 0, 0, 0, 5, 0, 1, 0, 3, 6, 0, 8, 7, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 6, 0, 0], [0, 0, 3, 10, 4, 63, 0, 0, 2069, 16, 77, 0, 0, 2, 0, 2, 92, 0, 1, 1, 2, 0, 0, 0, 1, 0, 0, 4, 1, 0, 82, 2, 0, 1, 0, 0, 11, 1, 0, 2, 0, 0, 28, 4, 0, 1, 0, 0, 2, 0, 464, 0, 0, 3, 0, 8, 0, 0, 0, 3, 3, 0, 23, 35, 2, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 3, 0, 0, 1, 2, 0, 1]]))
 
-testExampleModel()
+#testExampleModel()
