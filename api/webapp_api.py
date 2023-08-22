@@ -63,8 +63,8 @@ system_call_manager = SysCallManager(socketio, db)
 network_manager = NetworkManager(socketio, db)
 performance_manager = PerformanceManager(socketio, db)
 command_output_manager = CmdOutManager(socketio, db)
-classifier_manager = ClassifierManager(socketio, db)
-anomaly_detector_manager = AnomalyDetectorManager(socketio, db)
+classifier_manager = ClassifierManager(socketio, db, None, None) #fallback generic classifier and anomaly detector
+anomaly_detector_manager = AnomalyDetectorManager(socketio, db, None, None)
 
 allowed_users = {
     'foo': 'bar',
@@ -335,6 +335,10 @@ def create(data):
     feedback = start(start_data)
     emit("start feedback", json.dumps(feedback), namespace="/start")
 
+    print("picked syscall analyzer ", data["picked_syscall_analyzer"])
+    classifier_manager = ClassifierManager(socketio, db, data["picked_syscall_analyzer"], data["picked_performance_analyzer"])
+    anomaly_detector_manager = AnomalyDetectorManager(socketio, db, data["picked_syscall_detector"], data["picked_performance_detector"])
+
     malware = models.Malware.objects(hash=data["SHA256"])[0]
     idx = feedback["ID"]
     p = models.Process(SHA256=data["SHA256"], ID=idx, selected_os=data["OS"])
@@ -394,7 +398,19 @@ def get_start_data():
     oss = json.dumps(handler.get_available_images())
     malwares = json.dumps(handler.get_available_malware(host_bitness))
 
-    return {"malwares": malwares, "oss": oss}
+    with open('../backend/modelTrainer/models/models_list.json') as json_file:
+            models = json.load(json_file)
+
+    syscallAnalyzerModels = json.dumps([model['name'] for model in models["categories"]["syscall_malware_analyzer"]])
+    performanceAnalyzerModels = json.dumps([model['name'] for model in models["categories"]["performance_malware_analyzer"]])
+    syscallDetectorModels = json.dumps([model['name'] for model in models["categories"]["syscall_anomaly_detector"]])
+    performanceDetectorModels = json.dumps([model['name'] for model in models["categories"]["performance_anomaly_detector"]])
+    print("Syscall analyzer models found webapi: ", [model['name'] for model in models["categories"]["syscall_malware_analyzer"]])
+
+
+    return {"malwares": malwares, "oss": oss, "syscallAnalyzerModels": syscallAnalyzerModels, 
+            "performanceAnalyzerModels": performanceAnalyzerModels, "syscallDetectorModels": syscallDetectorModels, 
+            "performanceDetectorModels": performanceDetectorModels}
 
 
 @socketio.on("startSandbox", namespace="/dummy")

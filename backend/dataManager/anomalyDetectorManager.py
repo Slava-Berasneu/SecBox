@@ -8,16 +8,39 @@ import numpy as np
 from datetime import datetime
 
 class AnomalyDetectorManager(DataManager):
-    def __init__(self, socketio, db):
+    def __init__(self, socketio, db, syscall_detector, performance_detector):
         super().__init__(socketio, db)
         cwd = os.getcwd()
-        with open(os.path.abspath('../backend/modelTrainer/models/frequency_syscall_detector_lof.pkl'), 'rb') as file:
-            trained_model = pickle.load(file)
-        self.syscall_anomaly_detector = SyscallAnomalyDetector(trained_model)
-        with open(os.path.abspath('../backend/modelTrainer/models/performance_detector_lof.pkl'), 'rb') as file:
-            trained_model = pickle.load(file)
-        self.performance_anomaly_detector = PerformanceAnomalyDetector(trained_model)
-        self.syscall_anomaly_detector.featureExtractor = 'frequency'
+        with open('../backend/modelTrainer/models/models_list.json') as json_file:
+            models = json.load(json_file)
+
+
+        if(syscall_detector is None):
+            with open(os.path.abspath('../backend/modelTrainer/models/frequency_syscall_detector_lof.pkl'), 'rb') as file:
+                trained_model = pickle.load(file)
+            self.syscall_anomaly_detector = SyscallAnomalyDetector(trained_model)
+            self.syscall_anomaly_detector.featureExtractor = 'frequency'
+        else:
+            if syscall_detector in models["categories"]:
+                matching_model = models["categories"][syscall_detector][0]    
+                with open(os.path.abspath(matching_model), 'rb') as file:
+                    trained_model = pickle.load(file)
+                self.syscall_anomaly_detector = SyscallAnomalyDetector(trained_model)
+                if 'frequency' in syscall_detector:
+                    self.syscall_anomaly_detector.featureExtractor = 'frequency'
+                else:
+                    self.syscall_anomaly_detector.featureExtractor = 'sequence'
+
+        if(performance_detector is None):
+            with open(os.path.abspath('../backend/modelTrainer/models/performance_detector_lof.pkl'), 'rb') as file:
+                trained_model = pickle.load(file)
+            self.performance_anomaly_detector = PerformanceAnomalyDetector(trained_model)
+        else:
+            if performance_detector in models["categories"]:
+                matching_model = models["categories"][performance_detector][0]
+                with open(os.path.abspath(matching_model), 'rb') as file:
+                    trained_model = pickle.load(file)
+                self.performance_anomaly_detector = PerformanceAnomalyDetector(trained_model)
 
         self.syscallCollector = []
         self.performanceCollector = []

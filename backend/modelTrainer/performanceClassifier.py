@@ -106,6 +106,17 @@ class PerformanceClassifier(ModelTrainer):
         json_string = json.dumps(parameters, indent=4)
         with open(cwd+'/'+'backend/modelTrainer/models/'+file_name+'.json', "w") as json_file:
             json_file.write(json_string)
+
+        #write to model list
+        with open(cwd+'/'+'backend/modelTrainer/models/models_list.json', 'r') as json_file:
+            models = json.load(json_file)
+        new_model = {
+            "name": self.modelName,
+            "filepath": cwd+'/'+'backend/modelTrainer/models/'+file_name+'.json'
+        }
+        models["categories"]["performance_malware_analyzer"].append(new_model)
+        with open('your_file.json', 'w') as json_file:
+            json.dump(models, json_file, indent=4)
         
 
 def trainExampleModel():

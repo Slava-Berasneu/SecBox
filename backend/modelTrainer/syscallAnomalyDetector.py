@@ -182,6 +182,17 @@ class SyscallAnomalyDetector(ModelTrainer):
         with open(cwd+'/'+'backend/modelTrainer/models/'+file_name+'.json', "w") as json_file:
             json_file.write(json_string)
 
+        #write to model list
+        with open(cwd+'/'+'backend/modelTrainer/models/models_list.json', 'r') as json_file:
+            models = json.load(json_file)
+        new_model = {
+            "name": self.modelName,
+            "filepath": cwd+'/'+'backend/modelTrainer/models/'+file_name+'.json'
+        }
+        models["categories"]["syscall_anomaly_detector"].append(new_model)
+        with open('your_file.json', 'w') as json_file:
+            json.dump(models, json_file, indent=4)
+
     def convertSyscallsIntoSyscallArray(self, array):
         previous_timestamp = None
         syscall_arr = []

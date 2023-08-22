@@ -28,6 +28,10 @@
                   v-model="picked_os"
                   required
                 ></v-select>
+                <v-select :items="syscallAnalyzerModels" label="Syscall Malware Analyzer" v-model="picked_syscall_analyzer"></v-select>
+                <v-select :items="performanceAnalyzerModels" label="Performance Malware Analyzer" v-model="picked_performance_analyzer"></v-select>
+                <v-select :items="syscallDetectorModels" label="Syscall Anomaly Detector" v-model="picked_syscall_detector"></v-select>
+                <v-select :items="performanceDetectorModels" label="Performance Anomaly Detector" v-model="picked_performance_detector"></v-select>
               </v-col>
               <v-col cols="12">
                 <v-table>
@@ -98,7 +102,11 @@ export default {
   name: "StartAnalysisDialog",
   props:{
     oss:Array,
-    malwares:Array
+    malwares:Array,
+    syscallAnalyzerModels:Array,
+    performanceAnalyzerModels:Array,
+    syscallDetectorModels:Array,
+    performanceDetectorModels:Array,
   },
   data: () => ({
       dialog: false,
@@ -107,18 +115,25 @@ export default {
       osData:[],
       picked_malware:null,
       picked_os:null,
+      picked_syscall_analyzer:null,
+      picked_syscall_detector:null,
+      picked_performance_analyzer:null,
+      picked_performance_detector:null,
       reports:null,
       sent_request:false
     }),
 
   methods:{
     start: async function(){
-      if  (this.picked_malware == null || this.picked_os == null){
+      if  (this.picked_malware == null || this.picked_os == null || this.picked_syscall_analyzer == null || this.picked_syscall_detector == null ||
+      this.picked_performance_analyzer == null || this.picked_performance_detector == null){
         console.error("Validation Error")
       }
       else {
         this.socket = io("ws://"+process.env.VUE_APP_ROOT+"/start");
-        const response = {"SHA256": this.picked_malware, "OS": this.picked_os};
+        const response = {"SHA256": this.picked_malware, "OS": this.picked_os, "picked_syscall_analyzer": this.picked_syscall_analyzer, 
+        "picked_syscall_detector": this.picked_syscall_detector, "picked_performance_analyzer": this.picked_performance_analyzer, 
+        "picked_performance_detector": this.picked_performance_detector};
         this.socket.emit('start request', response);
         this.sent_request = true;
         this.dialog=false;

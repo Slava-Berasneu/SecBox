@@ -22,7 +22,9 @@
       </v-btn>
       </router-link>
 
-      <StartAnalysisDialog :oss="this.osData" :malwares="this.mwData"/>
+      <StartAnalysisDialog :oss="this.osData" :malwares="this.mwData" :syscallAnalyzerModels="this.syscallAnalyzerModels" 
+      :performanceAnalyzerModels="this.performanceAnalyzerModels" :syscallDetectorModels="this.syscallDetectorModels" 
+      :performanceDetectorModels="this.performanceDetectorModels"/>
 
       <v-app-bar-title>
         <p>{{ greeting }} - {{ flaskGreeting }}</p>
@@ -62,18 +64,27 @@ export default {
       greeting: 'SecBox',
       flaskGreeting: '',
     osData:[],
-    mwData:[]
+    mwData:[],
+    syscallAnalyzerModels:[],
+    performanceAnalyzerModels:[],
+    syscallDetectorModels:[],
+    performanceDetectorModels:[]
   }),
   created: async function(){
-        const gResponse = await fetch("http://"+process.env.VUE_APP_ROOT+"/greeting");
-        const gObject = await gResponse.json();
-        this.flaskGreeting = gObject.greeting;
+      const gResponse = await fetch("http://"+process.env.VUE_APP_ROOT+"/greeting");
+      const gObject = await gResponse.json();
+      this.flaskGreeting = gObject.greeting;
 
-        const startData = await fetch("http://"+process.env.VUE_APP_ROOT+"/getStartData");
-        const startObj = await startData.json();
-        this.osData = JSON.parse(startObj.oss)
-        this.mwData = JSON.parse(startObj.malwares)
-        console.log(this.osData, this.mwData)
+      const startData = await fetch("http://"+process.env.VUE_APP_ROOT+"/getStartData");
+      const startObj = await startData.json();
+      this.osData = JSON.parse(startObj.oss)
+      this.mwData = JSON.parse(startObj.malwares)
+      this.syscallAnalyzerModels = JSON.parse(startObj.syscallAnalyzerModels)
+      this.performanceAnalyzerModels = JSON.parse(startObj.performanceAnalyzerModels),
+      this.syscallDetectorModels = JSON.parse(startObj.syscallDetectorModels),
+      this.performanceDetectorModels = JSON.parse(startObj.performanceDetectorModels)
+
+      console.log(this.osData, this.mwData, this.syscallAnalyzerModels)
     }
 }
 </script>

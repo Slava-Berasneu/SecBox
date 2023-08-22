@@ -8,19 +8,41 @@ import numpy as np
 from datetime import datetime
 
 class ClassifierManager(DataManager):
-    def __init__(self, socketio, db):
+    def __init__(self, socketio, db, syscall_classifier, performance_classifier):
         super().__init__(socketio, db)
         cwd = os.getcwd()
-        with open(os.path.abspath('../backend/modelTrainer/models/frequency_syscall_classifier_bayes.pkl'), 'rb') as file:
-            trained_model = pickle.load(file)
-        self.syscall_classifier = SyscallClassifier(trained_model)
-        with open(os.path.abspath('../backend/modelTrainer/models/performance_classifier_bayes.pkl'), 'rb') as file:
-            trained_model = pickle.load(file)
-        self.performance_classifier = PerformanceClassifier(trained_model)
+        with open('../backend/modelTrainer/models/models_list.json') as json_file:
+            models = json.load(json_file)
+
+        if(syscall_classifier is None):
+            with open(os.path.abspath('../backend/modelTrainer/models/frequency_syscall_classifier_bayes.pkl'), 'rb') as file:
+                trained_model = pickle.load(file)
+            self.syscall_classifier = SyscallClassifier(trained_model)
+            self.syscall_classifier.featureExtractor = 'frequency'
+        else:
+            if syscall_classifier in models["categories"]:
+                matching_model = models["categories"][syscall_classifier][0]    
+                with open(os.path.abspath(matching_model), 'rb') as file:
+                    trained_model = pickle.load(file)
+                self.syscall_classifier = SyscallClassifier(trained_model)
+                if 'frequency' in syscall_classifier:
+                    self.syscall_classifier.featureExtractor = 'frequency'
+                else:
+                    self.syscall_classifier.featureExtractor = 'sequence'
+
+        if(performance_classifier is None):
+            with open(os.path.abspath('../backend/modelTrainer/models/performance_classifier_bayes.pkl'), 'rb') as file:
+                trained_model = pickle.load(file)
+            self.performance_classifier = PerformanceClassifier(trained_model)
+        else:
+            if performance_classifier in models["categories"]:
+                matching_model = models["categories"][performance_classifier][0]
+                with open(os.path.abspath(matching_model), 'rb') as file:
+                    trained_model = pickle.load(file)
+                self.performance_classifier = PerformanceClassifier(trained_model)
 
         self.syscallCollector = []
         self.performanceCollector = []
-        self.syscall_classifier.featureExtractor = 'frequency'
 
     def handle_message(self, msg, classifier_type):
         if classifier_type == 'syscalls':

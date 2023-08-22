@@ -1,0 +1,41 @@
+{
+    "categories": {
+      "syscall_malware_analyzer": [
+        {
+          "name": "Frequency Syscall Analyzer Bayes",
+          "filepath": "../backend/modelTrainer/models/frequency_syscall_classifier_bayes.pkl"
+        },
+        {
+          "name": "Sequence Syscall Analyzer Tree",
+          "filepath": "../backend/modelTrainer/models/sequence_syscall_classifier_tree.pkl"
+        }
+      ],
+      "syscall_anomaly_detector": [
+        {
+          "name": "Frequency Syscall Detector LOF",
+          "filepath": "../backend/modelTrainer/models/frequency_syscall_detector_lof.pkl"
+        }
+      ],
+      "performance_malware_analyzer": [
+        {
+          "name": "Performance Analyzer Bayes",
+          "filepath": "../backend/modelTrainer/models/performance_classifier_bayes.pkl"
+        },
+        {
+          "name": "Performance Analyzer Tree",
+          "filepath": "../backend/modelTrainer/models/performance_classifier_bayes.pkl"
+        }
+      ],
+      "performance_anomaly_detector": [
+        {
+          "name": "Performance Detector LOF",
+          "filepath": "../backend/modelTrainer/models/performance_detector_lof.pkl"
+        },
+        {
+          "name": "Performance Detector Forest",
+          "filepath": "../backend/modelTrainer/models/frequency_syscall_detector_forest.pkl"
+        }
+      ]
+    }
+  }
+  
