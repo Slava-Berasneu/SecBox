@@ -93,6 +93,24 @@ class PerformanceAnomalyDetector(ModelTrainer):
         json_string = json.dumps(parameters, indent=4)
         with open(cwd+'/'+'backend/modelTrainer/models/'+file_name+'.json', "w") as json_file:
             json_file.write(json_string)
+
+    def convertPerformanceStatsIntoArr(self, stats):
+        timestamp = [self.convertTimestampStringToEpochNanos(entry[0]) for entry in stats]
+        infected_cpu = [entry[1] for entry in stats]
+        infected_ram = [entry[2] for entry in stats]
+        infected_received_packages = [entry[3] for entry in stats]
+        infected_transmitted_packages = [entry[4] for entry in stats]
+        infected_data = np.column_stack((np.array(timestamp), np.array(infected_cpu), np.array(infected_ram), 
+                                            np.array(infected_received_packages), np.array(infected_transmitted_packages))) 
+        performance_arr = infected_data.tolist()
+        
+        return performance_arr
+        
+    def convertTimestampStringToEpochNanos(self, timestamp):
+        datetime_obj = datetime.strptime(timestamp, "%m/%d/%Y, %H:%M:%S.%fUTC")
+        unix_timestamp = datetime_obj.timestamp()
+        epoch_nanos = int(unix_timestamp * 1_000_000_000)
+        return epoch_nanos
         
 
 def trainExampleModel():

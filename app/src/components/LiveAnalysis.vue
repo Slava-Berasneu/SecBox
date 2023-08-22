@@ -52,6 +52,7 @@
         <v-card class="bg-deep-purple-lighten-3" >
           <PIDCountGraph :socket="this.socket"></PIDCountGraph>
           <ProtocolGraph :socket="this.socket"></ProtocolGraph>
+          <AnomalyDetector :socket="this.socket"/>
           <v-btn
                 block
               large
@@ -88,14 +89,16 @@ import LiveTerminal from "@/components/LiveTerminal";
 import router from "@/router/index";
 import CPUPercentages from "@/components/graphs/CPUPercentages";
 import MalwareAnalyzer from "./postAnalysisGraphs/MalwareAnalyzer.vue";
+import AnomalyDetector from "./postAnalysisGraphs/AnomalyDetector.vue";
 import PacketGraph from "@/components/graphs/PacketGraph";
 import PIDCountGraph from "@/components/graphs/PIDCountGraph";
 import ProtocolGraph from "@/components/graphs/ProtocolGraph";
 import io from "socket.io-client";
 import MalwareCard from "@/components/MalwareCard";
+
 export default {
   name: "LiveAnalysis",
-  components: {MalwareCard, LiveTerminal, PacketGraph, PIDCountGraph, CPUPercentages: CPUPercentages, ProtocolGraph, MalwareAnalyzer},
+  components: { MalwareCard, LiveTerminal, PacketGraph, PIDCountGraph, CPUPercentages: CPUPercentages, ProtocolGraph, MalwareAnalyzer, AnomalyDetector },
   data: () => ({
     loading: true,
     combined_cli: true,

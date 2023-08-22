@@ -45,7 +45,7 @@ class ClassifierManager(DataManager):
                 features = self.syscall_classifier.extractFeatures(syscall_arr)
                 if(len(features)>0):
                     prediction = self.syscall_classifier.predict(features).tolist()[0]
-                    self.socketio.emit('syscall_data', json.dumps([timestamp, prediction]), namespace="/live")
+                    self.socketio.emit('classifier_syscall_data', json.dumps([timestamp, prediction]), namespace="/live")
                 else:
                     return None
 
@@ -53,12 +53,11 @@ class ClassifierManager(DataManager):
             if(len(data)>0):
                 performance_arr = self.performance_classifier.convertPerformanceStatsIntoArr(data)
                 self.performanceCollector.extend(performance_arr)
-                print("performanceCollector ", self.performanceCollector)
                 timestamp = self.nanos_to_time(self.syscallCollector[-1][0])
                 if len(self.performanceCollector)>0 and self.performanceCollector[-1][0] - self.performanceCollector[0][0] > self.time_period:
                     prediction = self.performance_classifier.predict(self.performanceCollector).tolist()[0]
                     self.performanceCollector = []
-                    self.socketio.emit('performance_data', json.dumps([timestamp, prediction]), namespace="/live")
+                    self.socketio.emit('classifier_performance_data', json.dumps([timestamp, prediction]), namespace="/live")
                 else:
                     return None
             else:

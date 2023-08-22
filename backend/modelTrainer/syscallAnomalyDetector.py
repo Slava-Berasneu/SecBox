@@ -10,6 +10,7 @@ import pickle
 import json
 from .modelTrainer import ModelTrainer
 from collections import OrderedDict
+from datetime import datetime
 import numpy as np
 
 class SyscallAnomalyDetector(ModelTrainer):
@@ -180,6 +181,25 @@ class SyscallAnomalyDetector(ModelTrainer):
         json_string = json.dumps(parameters, indent=4)
         with open(cwd+'/'+'backend/modelTrainer/models/'+file_name+'.json', "w") as json_file:
             json_file.write(json_string)
+
+    def convertSyscallsIntoSyscallArray(self, array):
+        previous_timestamp = None
+        syscall_arr = []
+        for element in array:
+            current_timestamp = element[0]
+            if previous_timestamp is not None:
+                time_diff_nanos = int(current_timestamp) - int(previous_timestamp)
+                syscall_arr.append([element[0], element[1], time_diff_nanos])
+                    
+            previous_timestamp = current_timestamp
+
+        return syscall_arr
+    
+    def convertTimestampStringToEpochNanos(self, timestamp):
+        datetime_obj = datetime.strptime(timestamp, "%m/%d/%Y, %H:%M:%S.%fUTC")
+        unix_timestamp = datetime_obj.timestamp()
+        epoch_nanos = int(unix_timestamp * 1_000_000_000)
+        return epoch_nanos
         
 
 def trainExampleModel():

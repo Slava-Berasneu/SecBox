@@ -265,14 +265,14 @@ def getDirs(data):
 
 @socketio.on('performance', namespace='/live')
 def generate_performance_prediction(data):
+    #this is done differently by the 'stats' call below
     pass
-    #prediction = classifier_manager.handle_message(json.loads(data), 'performance')
-    #anomaly_detector_manager.handle_message(json.loads(data), 'performance')
+
 
 @socketio.on('syscalls', namespace='/live')
 def generate_syscalls_prediction(data):
     classifier_manager.handle_message(data ,'syscalls')
-    #anomaly_detector_manager.handle_message(json.loads(data), 'syscalls')
+    anomaly_detector_manager.handle_message(data, 'syscalls')
 
 
 @app.route('/report/download_pcap/<identification>/<infection>', methods=['GET'])
@@ -359,7 +359,7 @@ def handle_stats(data):
     infected_percentages = performance_manager.handle_message(json.loads(data))
     if(not infected_percentages is None):
         classifier_manager.handle_message(infected_percentages, 'performance')
-        #anomaly_detector_manager.handle_message(json.loads(data), 'performance')
+        anomaly_detector_manager.handle_message(infected_percentages, 'performance')
 
 
 
