@@ -38,38 +38,32 @@ class ClassifierManager(DataManager):
             if(len(self.syscallCollector)==0 or self.syscallCollector[-1][0]-self.syscallCollector[0][0]<self.time_period):
                 self.syscallCollector.append(data)
             else:
-                print("Outputting prediction")
                 syscall_arr = self.syscall_classifier.convertSyscallsIntoSyscallArray(self.syscallCollector)
-                timestamp = self.nanos_to_time(self.syscallCollector[0][0])
+                timestamp = self.nanos_to_time(self.syscallCollector[-1][0])
                 #print("Converted timestamp" ,timestamp)
                 self.syscallCollector = []
                 features = self.syscall_classifier.extractFeatures(syscall_arr)
                 if(len(features)>0):
                     prediction = self.syscall_classifier.predict(features).tolist()[0]
-                    print("made prediction: ",prediction)
                     self.socketio.emit('syscall_data', json.dumps([timestamp, prediction]), namespace="/live")
                 else:
                     return None
 
         elif classifier_type == "performance":
-            #{'timestamps': ['19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', 
-            # '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', 
-            # '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', 
-            # '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', 
-            # '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', 
-            # '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:57', '19:40:58', '19:40:59', '19:41:00', 
-            # '19:41:01', '19:41:02'], 'percentages': [0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 
-            # 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 
-            # 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 
-            # 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 0.1219, 
-            # 0.1571, 0.0268, 0.0308, 0.0275, 0.0381]}
-            for element in data.items():
-                if len(self.performanceCollector)==0 or element[0] > self.performanceCollector[:-1][0]:
-                    self.performanceCollector.append(element)
-                if int(self.performanceCollector[:-1][0]) - int(self.performanceCollector[0][0])*1e9 >= self.time_period:
-                   pass 
-                
-                
+            if(len(data)>0):
+                performance_arr = self.performance_classifier.convertPerformanceStatsIntoArr(data)
+                self.performanceCollector.extend(performance_arr)
+                print("performanceCollector ", self.performanceCollector)
+                timestamp = self.nanos_to_time(self.syscallCollector[-1][0])
+                if len(self.performanceCollector)>0 and self.performanceCollector[-1][0] - self.performanceCollector[0][0] > self.time_period:
+                    prediction = self.performance_classifier.predict(self.performanceCollector).tolist()[0]
+                    self.performanceCollector = []
+                    self.socketio.emit('performance_data', json.dumps([timestamp, prediction]), namespace="/live")
+                else:
+                    return None
+            else:
+                return None
+             
 
         else:
             print("Data Processing Error")

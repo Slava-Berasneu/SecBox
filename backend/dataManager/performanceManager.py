@@ -15,6 +15,7 @@ class PerformanceManager(DataManager):
         self.pid_counts = {}
         self.packet_counts = {}
         self.raw_perf_data = {}
+        self.timestamps = set()
 
     def setup_data_structures(self, sandbox_id):
         self.order_nos[sandbox_id] = {"healthy": 1, "infected": 1}
@@ -34,20 +35,20 @@ class PerformanceManager(DataManager):
         self.raw_perf_data[sandbox_id] = {"healthy": [], "infected": []}
 
     def handle_message(self, data):
-        infected_percentages = None
         sandbox_id = str(data["ID"])  # todo: remove string casting
         infected_status = data["infectedStatus"]
 
         if sandbox_id not in self.order_nos.keys():
             self.setup_data_structures(sandbox_id)
+        
+        self.extract_cpu_percentages(
+                sandbox_id, infected_status, data)
+        self.extract_pid_count(sandbox_id, infected_status, data["stats"])
+        self.extract_packet_count(
+                sandbox_id, infected_status, data["stats"])
+        self.extract_ram_usage(sandbox_id, infected_status, data["stats"])
         if self.order_nos[sandbox_id][infected_status] <= data["orderNo"]:
             # Call emit functions here
-            self.extract_cpu_percentages(
-                sandbox_id, infected_status, data)
-            self.extract_pid_count(sandbox_id, infected_status, data["stats"])
-            self.extract_packet_count(
-                sandbox_id, infected_status, data["stats"])
-            self.extract_ram_usage(sandbox_id, infected_status, data["stats"])
 
             # TODO: Create function for prepping data
             cpu_percentage_trimmed = self.cpu_percentages[sandbox_id][infected_status]["graph"]
@@ -84,16 +85,8 @@ class PerformanceManager(DataManager):
                     }
                 }
 
-                malware_analyzer_response = [times]
-
                 if response_cpu_percentage["infected_status"] == "infected":
-                    infected_percentages = response_cpu_percentage["data"]["percentages"]
-                    #malware_analyzer_response.
-
-                    #print("Emitted data to socket (performance Manager)")
-                    #emit here for cpu percentage malware analysis
-                    #self.socketio.emit("performance", infected_percentages, namespace='/live')
-
+                    infected_timestamps = response_cpu_percentage["data"]["timestamps"]
                 
                 self.socketio.emit("cpu_percentages_graph",
                                 response_cpu_percentage,
@@ -137,7 +130,40 @@ class PerformanceManager(DataManager):
                 self.order_nos[sandbox_id][infected_status] = data["orderNo"]
                 self.raw_perf_data[sandbox_id][infected_status].append(
                     data["stats"])
-        return infected_percentages
+                
+                #data taken for real-time malware analysis
+        combined_data = []
+        for entry in self.cpu_percentages[sandbox_id]['infected']['graph']:
+            if entry['timestamp'] not in self.timestamps:
+                self.timestamps.add(entry['timestamp'])
+                row = [entry['timestamp']]
+                percentage = entry['cpu_percentage']
+                row.append(percentage)
+                
+                ram_usage_data = self.ram_usage[sandbox_id]
+                
+                ram_usage_infected = next((item['ram_usage'] for item in ram_usage_data['infected']['graph'] 
+                                        if item['timestamp'] == entry['timestamp']), None)
+                if ram_usage_infected is not None:
+                    row.append(ram_usage_infected)
+                    full_timestamp = next((item['timestamp'] for item in ram_usage_data['infected']['graph'] 
+                                        if item['timestamp'] == entry['timestamp']), None)
+                    row[0] = full_timestamp
+                else:
+                    continue
+                
+                packet_counts_data = self.packet_counts[sandbox_id]
+                packet_counts_infected = next((item for item in packet_counts_data['infected']['graph'] 
+                                            if item['timestamp'] == entry['timestamp']), None)
+                if packet_counts_infected is not None:
+                    row.append(packet_counts_infected['received_packages'])
+                    row.append(packet_counts_infected['transmitted_packages'])
+                else:
+                    continue
+                
+                combined_data.append(row)
+
+        return combined_data
 
     def save_data(self, data):
         print("Saving Performance Data: ", data["ID"])

@@ -266,18 +266,12 @@ def getDirs(data):
 @socketio.on('performance', namespace='/live')
 def generate_performance_prediction(data):
     pass
-    #sandbox_id = data["ID"]
-    #objects = json.loads(models.MalwareAnalyzerModel.objects(ID__exact=sandbox_id).to_json())
     #prediction = classifier_manager.handle_message(json.loads(data), 'performance')
-    #socketio.emit('Malware Analysis Table', json.dumps(prediction), namespace="/analysis", room=objects[0]["ID"])
-
     #anomaly_detector_manager.handle_message(json.loads(data), 'performance')
 
 @socketio.on('syscalls', namespace='/live')
 def generate_syscalls_prediction(data):
-    prediction = classifier_manager.handle_message(data ,'syscalls')
-    if prediction is not None:
-        print("prediction: ", prediction)
+    classifier_manager.handle_message(data ,'syscalls')
     #anomaly_detector_manager.handle_message(json.loads(data), 'syscalls')
 
 
@@ -364,9 +358,8 @@ def handle_ready(json):
 def handle_stats(data):
     infected_percentages = performance_manager.handle_message(json.loads(data))
     if(not infected_percentages is None):
-        #classifier_manager.handle_message(infected_percentages, 'performance')
+        classifier_manager.handle_message(infected_percentages, 'performance')
         #anomaly_detector_manager.handle_message(json.loads(data), 'performance')
-        pass
 
 
 
