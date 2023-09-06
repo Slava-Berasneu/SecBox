@@ -1,0 +1,12 @@
+{
+    "modelName": "monti_performance_detector_forest",
+    "modelType": "IsolationForest",
+    "dataFilePaths": [
+        "backend/modelTrainer/trainingData/montiPerformance.json"
+    ],
+    "randomState": 52,
+    "contamination": 0.1,
+    "novelty": "N/A",
+    "n_neighbors": "N/A",
+    "timePeriod": 1000000000
+}

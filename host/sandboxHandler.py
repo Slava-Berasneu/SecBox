@@ -1,4 +1,5 @@
 import socketio
+import subprocess
 from multiprocessing import Process
 from controller import Controller
 from monitors import performanceMonitor
@@ -87,10 +88,32 @@ class Sandbox:
             self.sandbox_id, self.controller)
         self.netMonitor = networkMonitor.networkMonitor(
             self.sandbox_id, self.controller)
+        print("Downloading test files. Expect a long delay... This behavior can be changed in sandboxHandler.py")
+        self.execute_command("wget https://digitalcorpora.s3.amazonaws.com/corpora/files/govdocs1/zipfiles/026.zip")
+        print("Unzipping test files...")
+        self.execute_command("apt-get install unzip")
+        self.execute_command("unzip 026.zip -d /etc")
+        print("Cloning test files...")
+        self.execute_command("cp -r /etc/026 /etc/027")
+        self.execute_command("cp -r /etc/026 /etc/028")
+        self.execute_command("cp -r /etc/026 /etc/029")
+        self.execute_command("cp -r /etc/026 /etc/030")
+        self.execute_command("cp -r /etc/026 /etc/031")
+        self.execute_command("cp -r /etc/026 /etc/032")
+        self.execute_command("cp -r /etc/026 /etc/033")
+        self.execute_command("cp -r /etc/026 /etc/034")
+        self.execute_command("cp -r /etc/026 /etc/035")
+        self.execute_command("cp -r /etc/026 /etc/036")
+        self.execute_command("cp -r /etc/026 /etc/037")
+        self.execute_command("cp -r /etc/026 /etc/038")
+        print("Finished setting up test files in /etc/")
 
         self.stopped = False
         self.process = Process(target=self.run)
         self.process.start()
+
+    def execute_command(self, command):
+        self.controller.execute_command(command)
 
     def run(self):
         self.perfMonitor.run()

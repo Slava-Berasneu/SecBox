@@ -43,13 +43,11 @@ class PerformanceManager(DataManager):
         
         self.extract_cpu_percentages(
                 sandbox_id, infected_status, data)
-        self.extract_pid_count(sandbox_id, infected_status, data["stats"])
+        self.extract_pid_count(sandbox_id, infected_status, data["stats"]) 
         self.extract_packet_count(
                 sandbox_id, infected_status, data["stats"])
         self.extract_ram_usage(sandbox_id, infected_status, data["stats"])
         if self.order_nos[sandbox_id][infected_status] <= data["orderNo"]:
-            # Call emit functions here
-
             # TODO: Create function for prepping data
             cpu_percentage_trimmed = self.cpu_percentages[sandbox_id][infected_status]["graph"]
 
@@ -185,20 +183,26 @@ class PerformanceManager(DataManager):
         current_ts = parser.parse(data["read"])
         try:
             current_pid_count = data["pids_stats"]["current"]
-        except KeyError:
-            print("Tried to access data despite shutting down sandbox", sandbox_id)
-        self.pid_counts[sandbox_id][infected_status]["graph"].append(
+            self.pid_counts[sandbox_id][infected_status]["graph"].append(
             {"timestamp": current_ts.strftime("%m/%d/%Y, %H:%M:%S.%f%Z"), "pid_count": current_pid_count})
+        except Exception as e:
+            print("Tried to access data despite shutting down sandbox", sandbox_id)
+            print(e)
+        
 
     def extract_ram_usage(self, sandbox_id, infected_status, data):
         current_ts = parser.parse(data["read"])
-        current_usage = data["memory_stats"]["usage"]
-        limit = data["memory_stats"]["limit"]
-        ram_percentage = current_usage/limit * 100
-        self.ram_usage[sandbox_id][infected_status]["graph"].append(
-            {"timestamp": current_ts.strftime(
-                "%m/%d/%Y, %H:%M:%S.%f%Z"), "ram_usage": ram_percentage}
-        )
+        try:
+            current_usage = data["memory_stats"]["usage"]
+            limit = data["memory_stats"]["limit"]
+            ram_percentage = current_usage/limit * 100
+            self.ram_usage[sandbox_id][infected_status]["graph"].append(
+                {"timestamp": current_ts.strftime(
+                    "%m/%d/%Y, %H:%M:%S.%f%Z"), "ram_usage": ram_percentage}
+            )
+        except Exception as e:
+            print("Ram usage extraction error")
+            print(e)
 
     def extract_cpu_percentages(self, sandbox_id, infected_status, data):
         current_ts = parser.parse(data["stats"]["read"])
@@ -214,8 +218,9 @@ class PerformanceManager(DataManager):
                     percentage = 0
 
                 self.cpu_percentages[sandbox_id][infected_status]["graph"].append({"timestamp": current_ts.strftime("%m/%d/%Y, %H:%M:%S.%f%Z"), "cpu_percentage": percentage})
-            except:
+            except Exception as e: 
                 print("CPU data error")
+                print(e)
 
 
     def extract_packet_count(self, sandbox_id, infected_status, data):
@@ -227,7 +232,8 @@ class PerformanceManager(DataManager):
 
             self.packet_counts[sandbox_id][infected_status]["graph"].append(
                 {"timestamp": current_ts.strftime("%m/%d/%Y, %H:%M:%S.%f%Z"), "received_packages": received_packages, "transmitted_packages": transmitted_packages})
-        except:
+        except Exception as e:
             print("Extract packet count error")
+            print(e)
     def batch_process():
         pass

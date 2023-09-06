@@ -5,6 +5,8 @@ from sklearn.metrics import accuracy_score
 import csv
 import os
 import pickle
+import time
+import resource
 import json
 from .modelTrainer import ModelTrainer
 from datetime import datetime
@@ -125,16 +127,23 @@ class PerformanceAnomalyDetector(ModelTrainer):
         
 
 def trainExampleModel():
+    start_time = time.time()
     seed = 52        
     np.random.seed(seed)
 
-    performance_file_paths = ['backend/modelTrainer/trainingData/coin_miner_performance.json']
+    performance_file_paths = ['backend/modelTrainer/trainingData/montiPerformance.json']
 
-    #model = IsolationForest(contamination=0.1, random_state=seed)
-    model = LocalOutlierFactor(contamination=0.1, n_neighbors=20, novelty=True)
+    model = IsolationForest(contamination=0.1, random_state=seed)
+    #model = LocalOutlierFactor(contamination=0.1, n_neighbors=20, novelty=True)
     trainer = PerformanceAnomalyDetector(model)
-    trainer.trainModel(performance_file_paths,"performance_detector_lof")
-    #trainer.trainModel(performance_file_paths,"performance_detector_forest")
+    #trainer.trainModel(performance_file_paths,"monti_performance_detector_lof")
+    trainer.trainModel(performance_file_paths,"monti_performance_detector_forest")
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Execution Time: {execution_time:.2f} seconds")
+
+    resource_usage = resource.getrusage(resource.RUSAGE_SELF)
+    print(f"Max Resident Set Size: {resource_usage.ru_maxrss} KB")
 
 def testExampleModel():
     cwd = os.getcwd()
@@ -146,3 +155,4 @@ def testExampleModel():
     print(trainer.predict([[1.686810575451144e+18, 0.0452754590984975, 0.6206780797273546, 184.0, 55.0], [1.6868105764562609e+18, 0.010443514644351464, 0.6206780797273546, 184.0, 55.0], [1.686810577467789e+18, 0.009154228855721393, 0.6206780797273546, 184.0, 55.0], [1.686810578476995e+18, 0.017271214642262896, 0.6206780797273546, 184.0, 55.0], [1.6868105794868319e+18, 0.008785357737104826, 0.6206780797273546, 184.0, 55.0], [1.686810580496474e+18, 0.006970954356846474, 0.6206780797273546, 184.0, 55.0], [1.6868105815057981e+18, 0.007082294264339151, 0.6206780797273546, 184.0, 55.0], [1.686810354464642e+18, 0.037282518641259324, 0.0981960958807353, 21.0, 0.0], [1.686810355476162e+18, 0.010954356846473029, 0.0981960958807353, 21.0, 0.0]]))
 
 #testExampleModel()
+#trainExampleModel()

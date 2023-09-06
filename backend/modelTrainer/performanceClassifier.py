@@ -6,6 +6,8 @@ import csv
 import os
 import pickle
 import json
+import time
+import resource
 from .modelTrainer import ModelTrainer
 from datetime import datetime
 import numpy as np
@@ -48,6 +50,13 @@ class PerformanceClassifier(ModelTrainer):
             healthy_ram = [entry["ram_usage"] for entry in json.loads(data[0]["ram_usage"])["healthy"]["graph"]]
             healthy_received_packages = [entry["received_packages"] for entry in json.loads(data[0]["packet_counts"])["healthy"]["graph"]]
             healthy_transmitted_packages = [entry["transmitted_packages"] for entry in json.loads(data[0]["packet_counts"])["healthy"]["graph"]]
+            print("length healthy timestamp ", len(timestamp))
+            print(timestamp[0], timestamp[-1])
+            print("length healthy cpu ", len(healthy_cpu))
+            print("length healthy ram ", len(healthy_ram))
+            print(healthy_ram[0], healthy_ram[-1])
+            print("length healthy received ", len(healthy_received_packages))
+            print("length healthy transmitted ", len(healthy_transmitted_packages))
             healthy_data = np.column_stack((np.array(timestamp), np.array(healthy_cpu), np.array(healthy_ram), 
                                             np.array(healthy_received_packages), np.array(healthy_transmitted_packages)))
             performance_arr = healthy_data.tolist()
@@ -58,6 +67,11 @@ class PerformanceClassifier(ModelTrainer):
             infected_ram = [entry["ram_usage"] for entry in json.loads(data[0]["ram_usage"])["infected"]["graph"]]
             infected_received_packages = [entry["received_packages"] for entry in json.loads(data[0]["packet_counts"])["infected"]["graph"]]
             infected_transmitted_packages = [entry["transmitted_packages"] for entry in json.loads(data[0]["packet_counts"])["infected"]["graph"]]
+            print("length infected timestamp ", len(timestamp))
+            print("length infected cpu ", len(infected_cpu))
+            print("length infected ram ", len(infected_ram))
+            print("length infected received ", len(infected_received_packages))
+            print("length infected transmitted ", len(infected_transmitted_packages))
             infected_data = np.column_stack((np.array(timestamp), np.array(infected_cpu), np.array(infected_ram), 
                                              np.array(infected_received_packages), np.array(infected_transmitted_packages))) 
             performance_arr = infected_data.tolist()
@@ -66,12 +80,13 @@ class PerformanceClassifier(ModelTrainer):
     
     def convertPerformanceStatsIntoArr(self, stats):
         timestamp = [self.convertTimestampStringToEpochNanos(entry[0]) for entry in stats]
-        infected_cpu = [entry[1] for entry in stats]
-        infected_ram = [entry[2] for entry in stats]
-        infected_received_packages = [entry[3] for entry in stats]
-        infected_transmitted_packages = [entry[4] for entry in stats]
-        infected_data = np.column_stack((np.array(timestamp), np.array(infected_cpu), np.array(infected_ram), 
-                                            np.array(infected_received_packages), np.array(infected_transmitted_packages))) 
+        cpu = [entry[1] for entry in stats]
+        ram = [entry[2] for entry in stats]
+        received_packages = [entry[3] for entry in stats]
+        transmitted_packages = [entry[4] for entry in stats]
+
+        infected_data = np.column_stack((np.array(timestamp), np.array(cpu), np.array(ram), 
+                                            np.array(received_packages), np.array(transmitted_packages))) 
         performance_arr = infected_data.tolist()
         
         return performance_arr
@@ -83,7 +98,6 @@ class PerformanceClassifier(ModelTrainer):
         return epoch_nanos
 
     def fitModel(self, X, y):
-        print(X)
         self.model.fit(X,y)
 
     def testModel(self):
@@ -120,16 +134,27 @@ class PerformanceClassifier(ModelTrainer):
         
 
 def trainExampleModel():
-    seed = 52        
+    start_time = time.time()
+
+    seed = 52        #set random seed, or remove the random_state parameter from Classifier initialization call
     np.random.seed(seed)
 
-    performance_file_paths = [['backend/modelTrainer/trainingData/coin_miner_performance.json', 'infected']]
+    performance_file_paths = [['backend/modelTrainer/trainingData/montiPerformance.json', 'infected']]
 
-    #model = tree.DecisionTreeClassifier(random_state=seed)
-    model = GaussianNB()
+    #model = GaussianNB()  # no random state possible
+    model = tree.DecisionTreeClassifier(random_state=seed)
+    
+
     trainer = PerformanceClassifier(model)
-    trainer.trainModel(performance_file_paths,"performance_classifier_bayes")
-    #trainer.trainModel(performance_file_paths,"performance_classifier_tree")
+    #trainer.trainModel(performance_file_paths, "monti_performance_classifier_bayes")
+    trainer.trainModel(performance_file_paths, "monti_performance_classifier_tree")
+
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Execution Time: {execution_time:.2f} seconds")
+
+    resource_usage = resource.getrusage(resource.RUSAGE_SELF)
+    print(f"Max Resident Set Size: {resource_usage.ru_maxrss} KB")
 
 def testExampleModel():
     cwd = os.getcwd()
@@ -140,4 +165,9 @@ def testExampleModel():
     trainer = PerformanceClassifier(trained_model)
     print(trainer.predict([[1.686810354469615e+18, 0.10134868421052631, 0.1034627536547898, 31.0, 12.0], [1.686810355483381e+18, 0.06533665835411472, 0.1034627536547898, 33.0, 12.0], [1.686810356493398e+18, 0.15833610648918467, 0.1034627536547898, 34.0, 13.0], [1.686810357503371e+18, 0.011870324189526184, 0.1034627536547898, 34.0, 13.0], [1.686810358513789e+18, 0.029148580968280463, 0.1034627536547898, 35.0, 13.0],[1.68681058251565e+18, 0.006310517529215359, 0.6206780797273546, 184.0, 55.0], [1.686810583526227e+18, 0.0072483221476510075, 0.6206780797273546, 184.0, 55.0], [1.686810584537725e+18, 0.008585690515806989, 0.6206780797273546, 184.0, 55.0]]))
 
+def testModelWithFile():
+    cwd = os.getcwd()
+
+
+#trainExampleModel()
 #testExampleModel()

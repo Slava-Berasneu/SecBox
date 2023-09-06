@@ -13,6 +13,9 @@ syscalls_to_monitor = 384
 healthy_dockerfile = "healthy"
 infected_dockerfile = "infected"
 
+local_zip_path = "024.zip"
+
+container_destination_path = "/etc/"
 
 class Controller:
     def __init__(self, mw_hash, operating_system, sandbox_id) -> None:
@@ -34,6 +37,7 @@ class Controller:
             healthy_dockerfile, "healthy", self.sandbox_id, healthy_args)
         self.infectedInstance = Instance(
             infected_dockerfile, "infected", self.sandbox_id, infected_args)
+        
 
     def __enter__(self):
         return self
@@ -133,15 +137,28 @@ class Instance:
                 str(build_arguments["malware_hash"]) + \
                 '" https://mb-api.abuse.ch/api/v1/'
             unzip_malware_cmd = '7z e -pinfected malware.7z'
-            deinstall_pkgs_cmd = 'apt-get uninstall -y unzip && apt-get uninstall -y wget'
+            #deinstall_pkgs_cmd = 'apt-get uninstall -y unzip && apt-get uninstall -y wget'
 
             self.container.exec_run(
                 install_malware_cmd, workdir=self.current_path)
             self.container.exec_run(
                 unzip_malware_cmd, workdir=self.current_path)
-            self.container.exec_run(
-                deinstall_pkgs_cmd, workdir=self.current_path)
+            #self.container.exec_run(
+            #    deinstall_pkgs_cmd, workdir=self.current_path)
+
+            #print("preSetup of 024 zip")
+            #self.setup_zip_file(local_zip_path, container_destination_path)
+            #print("post setup of 024.zip")
+
             print("Malware infection successful")
+
+    def setup_zip_file(self, zip_file_path, destination_path):
+        if self.container is not None:
+            copy_command = f"docker cp {zip_file_path} {self.container.name}:{destination_path}"
+            unzip_command = f"unzip -q -d {destination_path} {os.path.basename(zip_file_path)}"
+
+            self.container.exec_run(copy_command, workdir=self.current_path)
+            self.container.exec_run(unzip_command, workdir=self.current_path)
 
     def stop_instance(self) -> int:
         if self.container is not None:

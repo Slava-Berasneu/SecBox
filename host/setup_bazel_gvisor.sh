@@ -10,6 +10,8 @@ sudo apt-get update
 sudo apt-get install unzip
 wget https://github.com/google/gvisor/archive/refs/heads/master.zip
 unzip master.zip
+
+
 cd gvisor-master
 mkdir -p bin
 make copy TARGETS=runsc DESTINATION=bin/

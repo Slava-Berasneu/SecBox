@@ -39,10 +39,6 @@
                   :render_both="this.render_both"
   >
   </DirectoryGraph>
-  <MalwareAnalyzer v-else-if="graph_title === 'Malware Analysis Table'"
-            :graph_title="graph_title"
-            :malwareAnalyzerData="this.malwareAnalyzerData"></MalwareAnalyzer>
-
 </template>
 
 <script>
@@ -52,13 +48,11 @@ import IPFrequencyGraph from "@/components/postAnalysisGraphs/IPFrequencyGraph";
 import ReadWriteGraph from "@/components/postAnalysisGraphs/ReadWriteGraph";
 import DirectoryGraph from "@/components/postAnalysisGraphs/DirectoryGraph";
 import RAMGraph from "@/components/postAnalysisGraphs/RAMGraph";
-import MalwareAnalyzer from "@/components/postAnalysisGraphs/MalwareAnalyzer";
 export default {
   name: "PAGraphWrapper",
-  components:{CPUMemoryGraph, NetworkLayerGraph, IPFrequencyGraph, ReadWriteGraph, DirectoryGraph, RAMGraph, MalwareAnalyzer},
+  components:{CPUMemoryGraph, NetworkLayerGraph, IPFrequencyGraph, ReadWriteGraph, DirectoryGraph, RAMGraph},
   props:{render_healthy:Boolean, render_both:Boolean, socket: Object,graph_get:String, graph_title:String},
   created() {
-
     let ref = this
     this.socket.emit(this.graph_get, {
       "ID":this.$route.params.id
@@ -100,18 +94,6 @@ export default {
             "healthy" : healthy_data,
             "infected" : infected_data
           }
-        }
-        else if (ref.graph_title === "Malware Analysis Table"){
-            ref.data = [{
-            timestamp: "2023-08-08 12:34:56",
-            syscallResult: "Infected",
-            performanceResult: "Infected"
-          },
-          {
-            timestamp: "2023-08-08 12:34:59",
-            syscallResult: "Healthy",
-            performanceResult: "Infected"
-          }]
         }
         // change flag
         ref.loading = false
@@ -190,10 +172,9 @@ export default {
   data:function(){
     return{
       data : {},
-      malwareAnalyzerData: {},
       loading:true
     }
-  },
+  }
 
 }
 </script>

@@ -6,6 +6,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import csv
 import os
+import time
+import resource
 import pickle
 import json
 from .modelTrainer import ModelTrainer
@@ -136,7 +138,8 @@ class SyscallAnomalyDetector(ModelTrainer):
                 # Update syscall_occurrences for the current sequence
                 for i, syscall_name in enumerate(sequence[:-1]):  # Exclude the last syscall in the sequence
                     for other_syscall_name in sequence[i + 1:]:
-                        syscall_occurrences[syscall_name][other_syscall_name] += 1
+                        if syscall_name in syscall_occurrences and other_syscall_name in syscall_occurrences:
+                            syscall_occurrences[syscall_name][other_syscall_name] += 1
 
                 #convert orderedDict of orderedDicts into list of lists
                 separated_features_arr = [list(inner_dict.values()) for inner_dict in syscall_occurrences.values()]
@@ -214,19 +217,27 @@ class SyscallAnomalyDetector(ModelTrainer):
         
 
 def trainExampleModel():
+    start_time = time.time()
     seed = 52        
     np.random.seed(seed)
 
-    syscall_file_paths = ['backend/modelTrainer/trainingData/coin_miner_syscalls_infected.csv', 
-                        'backend/modelTrainer/trainingData/coin_miner_syscalls_healthy.csv']
+    syscall_file_paths = ['backend/modelTrainer/trainingData/montiSyscallsHealthy.csv']
 
-    #model = IsolationForest(contamination=0.1, random_state=seed)
-    model = LocalOutlierFactor(contamination=0.1, n_neighbors=20, novelty=True)
+    model = IsolationForest(contamination=0.1, random_state=seed)
+    #model = LocalOutlierFactor(contamination=0.1, n_neighbors=20, novelty=True)
     trainer = SyscallAnomalyDetector(model)
-    trainer.trainModel(syscall_file_paths,"frequency","frequency_syscall_detector_lof")
-    #trainer.trainModel(syscall_file_paths,"sequence","sequence_syscall_detector_lof")
-    #trainer.trainModel(syscall_file_paths,"frequency","frequency_syscall_detector_forest")
-    #trainer.trainModel(syscall_file_paths,"sequence","sequence_syscall_detector_forest")
+
+    #trainer.trainModel(syscall_file_paths,"frequency","monti_syscall_detector_frequency_lof")
+    #trainer.trainModel(syscall_file_paths,"sequence","monti_syscall_detector_sequence_lof")
+    #trainer.trainModel(syscall_file_paths,"frequency","monti_syscall_detector_frequency_forest")
+    trainer.trainModel(syscall_file_paths,"sequence","monti_syscall_detector_sequence_forest")
+
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Execution Time: {execution_time:.2f} seconds")
+
+    resource_usage = resource.getrusage(resource.RUSAGE_SELF)
+    print(f"Max Resident Set Size: {resource_usage.ru_maxrss} KB")
 
 def testExampleModel():
     cwd = os.getcwd()
@@ -240,3 +251,4 @@ def testExampleModel():
     print(trainer.predict([[1, 0, 0, 121, 0, 9, 0, 0, 36, 32, 47, 0, 2, 0, 0, 11, 33, 0, 2, 12, 0, 1, 0, 0, 2, 6, 0, 4, 0, 1, 3, 7, 0, 4, 0, 1, 0, 4, 0, 26, 4, 0, 34, 6, 12, 2, 0, 0, 44, 7, 49, 0, 1, 0, 0, 29, 0, 0, 0, 9, 4, 0, 46, 3, 0, 0, 12, 0, 3, 0, 0, 0, 4, 1, 0, 3, 0, 1, 4, 8, 0, 0], [0, 0, 0, 9, 0, 4, 2, 0, 40, 28, 28, 2, 0, 0, 3, 0, 31, 0, 0, 2, 0, 0, 0, 0, 1, 0, 3, 0, 0, 0, 11, 14, 0, 0, 0, 1, 0, 0, 1, 5, 4, 21, 29, 0, 0, 0, 0, 0, 2, 0, 9, 0, 0, 0, 0, 15, 0, 0, 1, 3, 0, 0, 38, 0, 1, 1, 0, 0, 1, 0, 2, 0, 4, 0, 0, 0, 0, 0, 1, 0, 0, 0],[0, 0, 0, 17, 1, 8, 0, 0, 32, 4, 22, 0, 0, 0, 3, 3, 14, 0, 2, 2, 19, 1, 1, 0, 0, 0, 0, 0, 0, 1, 24, 2, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 15, 12, 1, 0, 0, 0, 2, 0, 38, 3, 0, 0, 0, 5, 0, 1, 0, 3, 6, 0, 8, 7, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 6, 0, 0], [0, 0, 3, 10, 4, 63, 0, 0, 2069, 16, 77, 0, 0, 2, 0, 2, 92, 0, 1, 1, 2, 0, 0, 0, 1, 0, 0, 4, 1, 0, 82, 2, 0, 1, 0, 0, 11, 1, 0, 2, 0, 0, 28, 4, 0, 1, 0, 0, 2, 0, 464, 0, 0, 3, 0, 8, 0, 0, 0, 3, 3, 0, 23, 35, 2, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 3, 0, 0, 1, 2, 0, 1]]))
 
 #testExampleModel()
+#trainExampleModel()

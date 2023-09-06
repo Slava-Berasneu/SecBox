@@ -2,37 +2,73 @@
     "categories": {
       "syscall_malware_analyzer": [
         {
-          "name": "Frequency Syscall Analyzer Bayes",
-          "filepath": "../backend/modelTrainer/models/frequency_syscall_classifier_bayes.pkl"
+          "name": "Monti Syscall Classifier Frequency Bayes",
+          "filepath": "../backend/modelTrainer/models/monti_syscall_classifier_frequency_bayes.pkl"
         },
         {
-          "name": "Sequence Syscall Analyzer Tree",
+          "name": "Monti Syscall Classifier Sequence Bayes",
+          "filepath": "../backend/modelTrainer/models/monti_syscall_classifier_sequence_bayes.pkl"
+        },
+        {
+          "name": "Monti Syscall Classifier Frequency Tree",
+          "filepath": "../backend/modelTrainer/models/monti_syscall_classifier_frequency_tree.pkl"
+        },
+        {
+          "name": "Monti Syscall Classifier Sequence Tree",
+          "filepath": "../backend/modelTrainer/models/monti_syscall_classifier_sequence_tree.pkl"
+        },
+        {
+          "name": "Generic Classifier (Fallback)",
           "filepath": "../backend/modelTrainer/models/sequence_syscall_classifier_tree.pkl"
         }
       ],
       "syscall_anomaly_detector": [
         {
-          "name": "Frequency Syscall Detector LOF",
+          "name": "Monti Syscall Detector Frequency LOF",
+          "filepath": "../backend/modelTrainer/models/monti_syscall_detector_frequency_lof.pkl"
+        },
+        {
+          "name": "Monti Syscall Detector Sequence LOF",
+          "filepath": "../backend/modelTrainer/models/monti_syscall_detector_sequence_lof.pkl"
+        },
+        {
+          "name": "Monti Syscall Detector Frequency Forest",
+          "filepath": "../backend/modelTrainer/models/monti_syscall_detector_frequency_forest.pkl"
+        },
+        {
+          "name": "Monti Syscall Detector Sequence Forest",
+          "filepath": "../backend/modelTrainer/models/monti_syscall_detector_sequence_forest.pkl"
+        },
+        {
+          "name": "Generic Detector (Fallback)",
           "filepath": "../backend/modelTrainer/models/frequency_syscall_detector_lof.pkl"
         }
       ],
       "performance_malware_analyzer": [
         {
-          "name": "Performance Analyzer Bayes",
-          "filepath": "../backend/modelTrainer/models/performance_classifier_bayes.pkl"
+          "name": "Monti Resource Usage Classifier Bayes",
+          "filepath": "../backend/modelTrainer/models/monti_performance_classifier_bayes.pkl"
         },
         {
-          "name": "Performance Analyzer Tree",
+          "name": "Monti Resource Usage Classifier Tree",
+          "filepath": "../backend/modelTrainer/models/monti_performance_classifier_tree.pkl"
+        },
+        {
+          "name": "Generic Classifier (Fallback)",
           "filepath": "../backend/modelTrainer/models/performance_classifier_bayes.pkl"
         }
       ],
       "performance_anomaly_detector": [
         {
-          "name": "Performance Detector LOF",
-          "filepath": "../backend/modelTrainer/models/performance_detector_lof.pkl"
+          "name": "Monti Resource Usage Detector LOF",
+          "filepath": "../backend/modelTrainer/models/monti_performance_detector_lof.pkl"
         },
         {
-          "name": "Performance Detector Forest",
+          "name": "Monti Resource Usage Detector Forest",
+          "filepath": "../backend/modelTrainer/models/monti_performance_detector_forest.pkl"
+        },
+        {
+          "name": "Generic Detector (Fallback)",
           "filepath": "../backend/modelTrainer/models/frequency_syscall_detector_forest.pkl"
         }
       ]

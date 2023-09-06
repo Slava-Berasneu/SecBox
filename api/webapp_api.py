@@ -223,7 +223,7 @@ def getIPAddresses(data):
     try:
         objects = json.loads(models.NetworkModel.objects(ID__exact=sandbox_id).to_json())
         response = json.loads(objects[0]["IP_frequency"])
-        print(response)
+        #print(response)
         socketio.emit("IP Addresses", json.dumps(response), namespace="/analysis", room=objects[0]["ID"])
     except IndexError:
         print("No corresponding DB entry found for IP frequency - ID: ", sandbox_id)
@@ -246,7 +246,7 @@ def getRWCount(data):
     try:
         objects = json.loads(models.SystemCallModel.objects(ID__exact=sandbox_id).to_json())
         response = json.loads(objects[0]["reads_vs_writes"])
-        print(response)
+        #print(response)
         socketio.emit("Read Write Counts", json.dumps(response), namespace="/analysis", room=objects[0]["ID"])
     except IndexError:
         print("No corresponding DB entry found for Read Write Counts - ID: ", sandbox_id)
@@ -258,7 +258,7 @@ def getDirs(data):
     try:
         objects = json.loads(models.SystemCallModel.objects(ID__exact=sandbox_id).to_json())
         response = json.loads(objects[0]["directory_frequency"])
-        print(response)
+        #print(response)
         socketio.emit("Directory Graph", json.dumps(response), namespace="/analysis", room=objects[0]["ID"])
     except IndexError:
         print("No corresponding DB entry found for Directory Graph - ID: ", sandbox_id)
@@ -318,7 +318,7 @@ def get_report(data):
 def update_report(data):
     sandbox_id = data["ID"]
     try:
-        print("updating ", sandbox_id, data)
+        #print("updating ", sandbox_id, data)
         models.Report.objects(ID__exact=sandbox_id).update(selected_graphs=data["selected_graphs"], title=data["title"])
     except IndexError:
         print("Could not perform update: ID not found")
@@ -335,7 +335,7 @@ def create(data):
     feedback = start(start_data)
     emit("start feedback", json.dumps(feedback), namespace="/start")
 
-    print("picked syscall analyzer ", data["picked_syscall_analyzer"])
+    #print("picked syscall analyzer ", data["picked_syscall_analyzer"])
     classifier_manager = ClassifierManager(socketio, db, data["picked_syscall_analyzer"], data["picked_performance_analyzer"])
     anomaly_detector_manager = AnomalyDetectorManager(socketio, db, data["picked_syscall_detector"], data["picked_performance_detector"])
 
@@ -354,7 +354,7 @@ def syscall_upload():
 
 @socketio.on('sandboxReady', namespace='/sandbox')
 def handle_ready(json):
-    print(json)
+    #print(json)
     print("sandbox ready!")
 
 
@@ -389,7 +389,6 @@ def create():
 @app.route("/getReports")
 def get_reports():
     reports = handler.get_reports()
-    print("reports: ",reports)
     return {"reports": reports}
 
 
@@ -405,7 +404,7 @@ def get_start_data():
     performanceAnalyzerModels = json.dumps([model['name'] for model in models["categories"]["performance_malware_analyzer"]])
     syscallDetectorModels = json.dumps([model['name'] for model in models["categories"]["syscall_anomaly_detector"]])
     performanceDetectorModels = json.dumps([model['name'] for model in models["categories"]["performance_anomaly_detector"]])
-    print("Syscall analyzer models found webapi: ", [model['name'] for model in models["categories"]["syscall_malware_analyzer"]])
+    #print("Syscall analyzer models found webapi: ", [model['name'] for model in models["categories"]["syscall_malware_analyzer"]])
 
 
     return {"malwares": malwares, "oss": oss, "syscallAnalyzerModels": syscallAnalyzerModels, 
@@ -424,7 +423,7 @@ def stop(data):
     print("Stop function called")
     try:
         performance_manager.save_data(data)
-        print("Saved performance data", data)
+        #print("Saved performance data", data)
         network_manager.save_data(data)
         socketio.emit("stopSandbox", json.dumps(data), namespace="/sandbox")
     except KeyError:

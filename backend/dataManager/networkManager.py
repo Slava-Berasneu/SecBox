@@ -108,7 +108,7 @@ class NetworkManager(DataManager):
 
     def save_data(self, data):
         try:
-            print("Saving Network Data: ", data["ID"])
+            #print("Saving Network Data: ", data["ID"])
             i = data["ID"]
             pm = models.NetworkModel(
                 ID=i,

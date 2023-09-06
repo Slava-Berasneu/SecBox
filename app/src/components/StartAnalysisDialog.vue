@@ -28,10 +28,10 @@
                   v-model="picked_os"
                   required
                 ></v-select>
-                <v-select :items="syscallAnalyzerModels" label="Syscall Malware Analyzer" v-model="picked_syscall_analyzer"></v-select>
-                <v-select :items="performanceAnalyzerModels" label="Performance Malware Analyzer" v-model="picked_performance_analyzer"></v-select>
+                <v-select :items="syscallAnalyzerModels" label="Syscall Malware Classifier" v-model="picked_syscall_analyzer"></v-select>
+                <v-select :items="performanceAnalyzerModels" label="Resource Usage Malware Classifier" v-model="picked_performance_analyzer"></v-select>
                 <v-select :items="syscallDetectorModels" label="Syscall Anomaly Detector" v-model="picked_syscall_detector"></v-select>
-                <v-select :items="performanceDetectorModels" label="Performance Anomaly Detector" v-model="picked_performance_detector"></v-select>
+                <v-select :items="performanceDetectorModels" label="Resource Usage Anomaly Detector" v-model="picked_performance_detector"></v-select>
               </v-col>
               <v-col cols="12">
                 <v-table>

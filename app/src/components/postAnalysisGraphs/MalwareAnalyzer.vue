@@ -7,7 +7,7 @@
           <tr>
             <th>Timestamp</th>
             <th>Syscall Prediction</th>
-            <th>Performance Prediction</th>
+            <th>Resource Usage Prediction</th>
           </tr>
         </thead>
         <tbody>

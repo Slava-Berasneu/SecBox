@@ -1,0 +1,11 @@
+{
+    "modelName": "monti_performance_classifier_bayes",
+    "modelType": "GaussianNB",
+    "dataFilePaths": [
+        [
+            "backend/modelTrainer/trainingData/montiPerformance.json",
+            "infected"
+        ]
+    ],
+    "randomState": "N/A"
+}

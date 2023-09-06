@@ -29,8 +29,6 @@ class SysCallManager(DataManager):
         return syscall_list
 
     def handle_message(self, data):
-        print("syscall message data",data)
-
         for infected_status in data["sysCalls"].keys():
             data["sysCalls"][infected_status] = self.process_data(
                 data["sysCalls"][infected_status])
@@ -44,7 +42,7 @@ class SysCallManager(DataManager):
         return True
 
     def save_data(self, data):
-        print("Saving Syscall Data: " + data["ID"])
+        #print("Saving Syscall Data: " + data["ID"])
 
         i = data["ID"]
         print(self.reads_vs_writes[i])

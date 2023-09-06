@@ -69,7 +69,6 @@ export default {
   }),
   created: async function(){
         const gResponse = await fetch("http://"+process.env.VUE_APP_ROOT+"/getReports");
-        console.log("gresponse ",gResponse);
         const reports = await gResponse.json();
         this.reports = reports["reports"]
     },

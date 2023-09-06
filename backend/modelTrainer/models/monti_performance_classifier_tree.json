@@ -1,0 +1,11 @@
+{
+    "modelName": "monti_performance_classifier_tree",
+    "modelType": "DecisionTreeClassifier",
+    "dataFilePaths": [
+        [
+            "backend/modelTrainer/trainingData/montiPerformance.json",
+            "infected"
+        ]
+    ],
+    "randomState": 52
+}
