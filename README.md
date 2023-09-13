@@ -53,7 +53,10 @@ sudo python3 host.py
 ## Configuration
 Configuration happens through the respective .env files for the respective system components.
 
-
 ## Demo Video
 A demo is available on YouTube:
 https://www.youtube.com/watch?v=lkEE3iQvFtk
+
+## Training Files
+The training data is hosted at https://www.dropbox.com/sh/qosl2as7w7h92s9/AAD62wfpVOTJtV4qn-JtCFw6a?dl=0
+Note that the syscalls_infected file has already been cut to just the malware execution stage
