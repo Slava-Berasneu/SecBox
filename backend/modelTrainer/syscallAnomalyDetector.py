@@ -221,7 +221,7 @@ def trainExampleModel():
     seed = 52        
     np.random.seed(seed)
 
-    syscall_file_paths = ['backend/modelTrainer/trainingData/montiSyscallsHealthy.csv']
+    syscall_file_paths = ['backend/modelTrainer/trainingData/montiSyscallsInfected.csv']
 
     model = IsolationForest(contamination=0.1, random_state=seed)
     #model = LocalOutlierFactor(contamination=0.1, n_neighbors=20, novelty=True)

@@ -88,6 +88,7 @@ class Sandbox:
             self.sandbox_id, self.controller)
         self.netMonitor = networkMonitor.networkMonitor(
             self.sandbox_id, self.controller)
+        '''
         print("Downloading test files. Expect a long delay... This behavior can be changed in sandboxHandler.py")
         self.execute_command("wget https://digitalcorpora.s3.amazonaws.com/corpora/files/govdocs1/zipfiles/026.zip")
         print("Unzipping test files...")
@@ -107,7 +108,7 @@ class Sandbox:
         self.execute_command("cp -r /etc/026 /etc/037")
         self.execute_command("cp -r /etc/026 /etc/038")
         print("Finished setting up test files in /etc/")
-
+        '''
         self.stopped = False
         self.process = Process(target=self.run)
         self.process.start()

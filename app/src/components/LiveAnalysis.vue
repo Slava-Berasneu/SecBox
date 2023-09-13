@@ -145,4 +145,8 @@ export default {
   font-family: "Courier New";
   font-weight: bold;
 }
+
+.v-container {
+    overflow-y: auto;
+}
 </style>
